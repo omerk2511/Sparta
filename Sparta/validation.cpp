@@ -9,7 +9,7 @@ bool validation::is_os_supported()
 {
 #ifndef _WIN64
     KdPrint(("[-] sparta only supports 64 bit machines\n"));
-    NOT_SUPPORTED();
+    return false;
 #endif
 
     RTL_OSVERSIONINFOW os_version_info = { 0 };
