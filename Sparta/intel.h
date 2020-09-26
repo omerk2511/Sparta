@@ -1,15 +1,20 @@
 #pragma once
+#pragma warning(disable: 4201)
 
 namespace intel
 {
     enum class Msr
     {
-        kIa32FeatureControl = 0x3a
+        kIa32FeatureControl = 0x3a,
+        kIa32VmxCr0Fixed0 = 0x486,
+        kIa32VmxCr0Fixed1 = 0x487,
+        kIa32VmxCr4Fixed0 = 0x488,
+        kIa32VmxCr4Fixed1 = 0x489
     };
 
     union Ia32FeatureControl
     {
-        unsigned long long all;
+        unsigned long long raw;
 
         struct
         {
@@ -110,5 +115,35 @@ namespace intel
 
             int raw;
         } edx;
+    };
+
+    union Cr4
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long vme : 1;
+            unsigned long long pvi : 1;
+            unsigned long long tsd : 1;
+            unsigned long long de : 1;
+            unsigned long long pse : 1;
+            unsigned long long pae : 1;
+            unsigned long long mce : 1;
+            unsigned long long pge : 1;
+            unsigned long long pce : 1;
+            unsigned long long osfxsr : 1;
+            unsigned long long osxmmexcpt : 1;
+            unsigned long long umip : 1;
+            unsigned long long la57 : 1;
+            unsigned long long vmxe : 1;
+            unsigned long long smxe : 1;
+            unsigned long long fsgsbase : 1;
+            unsigned long long pcide : 1;
+            unsigned long long osxsave : 1;
+            unsigned long long smep : 1;
+            unsigned long long smap : 1;
+            unsigned long long pke : 1;
+        };
     };
 }

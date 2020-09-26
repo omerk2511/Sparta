@@ -1,8 +1,7 @@
-#pragma warning(disable: 4201)
-
 #include "validation.h"
 #include "intel.h"
 
+#include <ntddk.h>
 #include <intrin.h>
 
 bool validation::is_os_supported()
@@ -47,7 +46,7 @@ bool validation::is_vmx_supported()
 
     intel::Ia32FeatureControl feature_control = { 0 };
 
-    feature_control.all = ::__readmsr(
+    feature_control.raw = ::__readmsr(
         static_cast<unsigned long>(intel::Msr::kIa32FeatureControl)
     );
 

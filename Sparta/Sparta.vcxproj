@@ -138,9 +138,12 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="validation.cpp" />
+    <ClCompile Include="vmx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="intel.h" />
     <ClInclude Include="validation.h" />
+    <ClInclude Include="vmx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

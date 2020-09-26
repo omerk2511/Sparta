@@ -1,6 +1,7 @@
 #include <ntddk.h>
 
 #include "validation.h"
+#include "vmx.h"
 
 void unload_routine(PDRIVER_OBJECT driver_object);
 
@@ -23,6 +24,9 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING re
 		KdPrint(("[-] vmx operation not supported\n"));
 		return STATUS_NOT_SUPPORTED;
 	}
+
+	vmx::enable_vmx_operation(); // TODO: execute on every processor
+	KdPrint(("[+] enabled vmx operation successfully\n"));
 
 	KdPrint(("[+] loaded sparta successfully\n"));
 	return STATUS_SUCCESS;
