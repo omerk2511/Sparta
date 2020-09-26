@@ -28,6 +28,16 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING re
 	vmx::enable_vmx_operation(); // TODO: execute on every processor
 	KdPrint(("[+] enabled vmx operation successfully\n"));
 
+	auto result = vmx::vmxon();
+
+	if (!result.success)
+	{
+		KdPrint(("[-] could not enter vmx root mode\n"));
+		return STATUS_HV_OPERATION_FAILED;
+	}
+
+	KdPrint(("[+] entered vmx root mode successfully\n"));
+
 	KdPrint(("[+] loaded sparta successfully\n"));
 	return STATUS_SUCCESS;
 }

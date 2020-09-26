@@ -6,10 +6,30 @@ namespace intel
     enum class Msr
     {
         kIa32FeatureControl = 0x3a,
+        kIa32VmxBasic = 0x480,
         kIa32VmxCr0Fixed0 = 0x486,
         kIa32VmxCr0Fixed1 = 0x487,
         kIa32VmxCr4Fixed0 = 0x488,
         kIa32VmxCr4Fixed1 = 0x489
+    };
+
+    union Ia32VmxBasic
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long revision_identifier : 31;
+            unsigned long long reserved_1 : 1;
+            unsigned long long region_size : 12;
+            unsigned long long reserved_2 : 3;
+            unsigned long long supported_ia64 : 1;
+            unsigned long long supported_dual_monitor : 1;
+            unsigned long long memory_type : 4;
+            unsigned long long vm_exit_report : 1;
+            unsigned long long vmx_capability_hint : 1;
+            unsigned long long reserved_3 : 8;
+        };
     };
 
     union Ia32FeatureControl

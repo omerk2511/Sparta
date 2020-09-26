@@ -44,11 +44,7 @@ bool validation::is_vmx_supported()
         return false;
     }
 
-    intel::Ia32FeatureControl feature_control = { 0 };
-
-    feature_control.raw = ::__readmsr(
-        static_cast<unsigned long>(intel::Msr::kIa32FeatureControl)
-    );
+    intel::Ia32FeatureControl feature_control = { ::__readmsr(static_cast<unsigned long>(intel::Msr::kIa32FeatureControl)) };
 
     if (feature_control.lock &&
         ((!feature_control.enable_vmxon && !features_info.ecx.smx) ||
