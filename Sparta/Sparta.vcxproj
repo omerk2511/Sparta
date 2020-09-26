@@ -136,12 +136,18 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="delete.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="new.cpp" />
     <ClCompile Include="validation.cpp" />
     <ClCompile Include="vmx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="delete.h" />
     <ClInclude Include="intel.h" />
+    <ClInclude Include="new.h" />
+    <ClInclude Include="multiprocessing.h" />
+    <ClInclude Include="unique_pointer.h" />
     <ClInclude Include="validation.h" />
     <ClInclude Include="vmx.h" />
   </ItemGroup>

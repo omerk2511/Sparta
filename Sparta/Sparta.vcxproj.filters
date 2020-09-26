@@ -28,6 +28,12 @@
     <ClCompile Include="vmx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="new.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="delete.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="validation.h">
@@ -37,6 +43,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="new.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="delete.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="multiprocessing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="unique_pointer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

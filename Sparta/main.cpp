@@ -1,7 +1,10 @@
 #include <ntddk.h>
 
+#include "new.h"
+#include "delete.h"
 #include "validation.h"
 #include "vmx.h"
+#include "multiprocessing.h"
 
 void unload_routine(PDRIVER_OBJECT driver_object);
 
@@ -25,15 +28,18 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING re
 		return STATUS_NOT_SUPPORTED;
 	}
 
-	vmx::enable_vmx_operation(); // TODO: execute on every processor
+	multiprocessing::execute_callback_in_each_processor(vmx::enable_vmx_operation);
 	KdPrint(("[+] enabled vmx operation successfully\n"));
 
-	auto result = vmx::vmxon();
+	auto results = multiprocessing::execute_callback_in_each_processor(vmx::vmxon);
 
-	if (!result.success)
+	for (auto i = 0; i < results.processor_count; i++)
 	{
-		KdPrint(("[-] could not enter vmx root mode\n"));
-		return STATUS_HV_OPERATION_FAILED;
+		if (!results.return_values[i].success)
+		{
+			KdPrint(("[-] could not enter vmx root mode on processor %d\n", i));
+			return STATUS_HV_OPERATION_FAILED; // TODO: vmxoff in every initialized processor
+		}
 	}
 
 	KdPrint(("[+] entered vmx root mode successfully\n"));
