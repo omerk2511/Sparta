@@ -19,8 +19,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="Sparta.inf">
-      <Filter>Driver Files</Filter>
-    </Inf>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="validation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="validation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
