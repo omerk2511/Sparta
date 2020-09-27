@@ -83,6 +83,8 @@ vmx::VmxonResult vmx::vmxon()
 		(reinterpret_cast<unsigned long long>(address) + kVmxonRegionSize - 1) & ~(kVmxonRegionSize - 1));
 	auto physical_aligned = ::MmGetPhysicalAddress(virtual_aligned).QuadPart;
 
+	KdPrint(("[+] vmx region allocated @0x%p (virtual) -> @0x%p (physical)\n", virtual_aligned, physical_aligned));
+
 	intel::Ia32VmxBasic ia32_vmx_basic = { ::__readmsr(static_cast<unsigned long>(intel::Msr::kIa32VmxBasic)) };
 	*reinterpret_cast<unsigned long*>(virtual_aligned) = static_cast<unsigned long>(ia32_vmx_basic.revision_identifier);
 
