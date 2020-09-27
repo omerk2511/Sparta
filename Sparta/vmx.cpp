@@ -1,5 +1,6 @@
 #include "vmx.h"
 #include "intel.h"
+#include "memory.h"
 
 #include <ntddk.h>
 #include <intrin.h>
@@ -67,31 +68,27 @@ vmx::VmxonResult vmx::vmxon()
 {
 	VmxonResult result = { 0 };
 
-	PHYSICAL_ADDRESS max_addr = { 0 };
-	max_addr.QuadPart = MAXULONG64;
-	auto address = ::MmAllocateContiguousMemory(kVmxonRegionSize * 2, max_addr);
+	auto virtual_vmxon_region = reinterpret_cast<void*>(new (NonPagedPool) unsigned char[kVmxonRegionSize]);
 
-	if (!address)
+	if (!virtual_vmxon_region)
 	{
 		KdPrint(("[-] could not allocate a vmxon region\n"));
 		return result;
 	}
 
-	::RtlSecureZeroMemory(address, kVmxonRegionSize * 2);
+	::RtlSecureZeroMemory(virtual_vmxon_region, kVmxonRegionSize);
 
-	auto virtual_aligned = reinterpret_cast<void*>(
-		(reinterpret_cast<unsigned long long>(address) + kVmxonRegionSize - 1) & ~(kVmxonRegionSize - 1));
-	auto physical_aligned = ::MmGetPhysicalAddress(virtual_aligned).QuadPart;
+	auto physical_vmxon_region = ::MmGetPhysicalAddress(virtual_vmxon_region).QuadPart;
 
-	KdPrint(("[+] vmx region allocated @0x%p (virtual) -> @0x%p (physical)\n", virtual_aligned, physical_aligned));
+	KdPrint(("[+] vmx region allocated @0x%p (virtual) -> @0x%p (physical)\n", virtual_vmxon_region, physical_vmxon_region));
 
 	intel::Ia32VmxBasic ia32_vmx_basic = { ::__readmsr(static_cast<unsigned long>(intel::Msr::kIa32VmxBasic)) };
-	*reinterpret_cast<unsigned long*>(virtual_aligned) = static_cast<unsigned long>(ia32_vmx_basic.revision_identifier);
+	*reinterpret_cast<unsigned long*>(virtual_vmxon_region) = static_cast<unsigned long>(ia32_vmx_basic.revision_identifier);
 
-	auto ret = ::__vmx_on(reinterpret_cast<unsigned long long*>(&physical_aligned));
+	auto ret = ::__vmx_on(reinterpret_cast<unsigned long long*>(&physical_vmxon_region));
 
 	result.success = (ret == STATUS_SUCCESS);
-	result.vmxon_region = virtual_aligned;
+	result.vmxon_region = virtual_vmxon_region;
 
 	return result;
 }
