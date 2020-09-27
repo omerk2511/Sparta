@@ -1,7 +1,6 @@
 #include <ntddk.h>
 
-#include "new.h"
-#include "delete.h"
+#include "memory.h"
 #include "validation.h"
 #include "vmx.h"
 #include "multiprocessing.h"

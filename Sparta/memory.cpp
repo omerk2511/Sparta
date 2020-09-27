@@ -1,4 +1,6 @@
-#include "new.h"
+#include "memory.h"
+
+#include <ntddk.h>
 
 void* operator new(size_t size, POOL_TYPE pool_type, ULONG tag)
 {
@@ -20,4 +22,17 @@ void* operator new[](size_t size, POOL_TYPE pool_type, ULONG tag)
         size,
         tag
     );
+}
+
+
+void operator delete(void* address)
+{
+	KdPrint(("[*] deleting mem @0x%p\n", address));
+	::ExFreePool(address);
+}
+
+void operator delete[](void* address)
+{
+	KdPrint(("[*] deleting [] @0x%p\n", address));
+	::ExFreePool(address);
 }

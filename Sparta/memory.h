@@ -1,6 +1,12 @@
 #pragma once
 
-#include "delete.h"
+#include <ntddk.h>
+
+void* operator new(size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0);
+void* operator new[](size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0);
+
+void operator delete(void* address);
+void operator delete[](void* address);
 
 template<typename T>
 class UniquePointer final

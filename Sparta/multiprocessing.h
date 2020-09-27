@@ -2,8 +2,7 @@
 
 #include <ntddk.h>
 
-#include "new.h"
-#include "unique_pointer.h"
+#include "memory.h"
 
 namespace multiprocessing
 {
