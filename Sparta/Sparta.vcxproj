@@ -138,6 +138,7 @@
   <ItemGroup>
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="multiprocessing.cpp" />
     <ClCompile Include="validation.cpp" />
     <ClCompile Include="vmx.cpp" />
   </ItemGroup>
@@ -145,6 +146,7 @@
     <ClInclude Include="intel.h" />
     <ClInclude Include="multiprocessing.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="proccessor_info.h" />
     <ClInclude Include="validation.h" />
     <ClInclude Include="vmx.h" />
   </ItemGroup>

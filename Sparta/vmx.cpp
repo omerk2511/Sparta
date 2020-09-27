@@ -5,8 +5,10 @@
 #include <ntddk.h>
 #include <intrin.h>
 
-void vmx::enable_vmx_operation()
+void vmx::enable_vmx_operation(unsigned int processor_index)
 {
+	UNREFERENCED_PARAMETER(processor_index);
+
 	intel::Cr4 cr4 = { ::__readcr4() };
 	cr4.vmxe = true;
 	::__writecr4(cr4.raw);
@@ -38,11 +40,13 @@ void vmx::enable_vmx_operation()
 	);
 
 	auto ia32_vmx_cr0_fixed1 = ::__readmsr(
-		static_cast<unsigned long>(intel::Msr::kIa32VmxCr0Fixed0)
+		static_cast<unsigned long>(intel::Msr::kIa32VmxCr0Fixed1)
 	);
 
+	KdPrint(("[*] ia32_vmx_cr0_fixed1 = 0x%p\n", ia32_vmx_cr0_fixed1));
+
 	auto cr0 = ::__readcr0();
-	cr0 |= (ia32_vmx_cr0_fixed0 & 0xffffffff);
+	cr0 |= ia32_vmx_cr0_fixed0;
 	cr0 &= ia32_vmx_cr0_fixed1;
 	::__writecr0(cr0);
 
@@ -54,8 +58,10 @@ void vmx::enable_vmx_operation()
 		static_cast<unsigned long>(intel::Msr::kIa32VmxCr4Fixed1)
 	);
 
+	KdPrint(("[*] ia32_vmx_cr4_fixed1 = 0x%p\n", ia32_vmx_cr4_fixed1));
+
 	cr4.raw = ::__readcr4();
-	cr4.raw |= (ia32_vmx_cr4_fixed0 & 0xffffffff);
+	cr4.raw |= ia32_vmx_cr4_fixed0;
 	cr4.raw &= ia32_vmx_cr4_fixed1;
 	::__writecr4(cr4.raw);
 
@@ -64,16 +70,16 @@ void vmx::enable_vmx_operation()
 
 static constexpr size_t kVmxonRegionSize = 4096;
 
-vmx::VmxonResult vmx::vmxon()
-{
-	VmxonResult result = { 0 };
+extern ProcessorInfo* g_processors_info;
 
+bool vmx::vmxon(unsigned int processor_index)
+{
 	auto virtual_vmxon_region = reinterpret_cast<void*>(new (NonPagedPool) unsigned char[kVmxonRegionSize]);
 
 	if (!virtual_vmxon_region)
 	{
 		KdPrint(("[-] could not allocate a vmxon region\n"));
-		return result;
+		return false;
 	}
 
 	::RtlSecureZeroMemory(virtual_vmxon_region, kVmxonRegionSize);
@@ -86,9 +92,9 @@ vmx::VmxonResult vmx::vmxon()
 	*reinterpret_cast<unsigned long*>(virtual_vmxon_region) = static_cast<unsigned long>(ia32_vmx_basic.revision_identifier);
 
 	auto ret = ::__vmx_on(reinterpret_cast<unsigned long long*>(&physical_vmxon_region));
+	auto success = (ret == STATUS_SUCCESS);
 
-	result.success = (ret == STATUS_SUCCESS);
-	result.vmxon_region = virtual_vmxon_region;
+	g_processors_info[processor_index].vmxon_region = virtual_vmxon_region;
 
-	return result;
+	return success;
 }

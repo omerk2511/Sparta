@@ -6,6 +6,8 @@
 
 namespace multiprocessing
 {
+	size_t get_processor_count();
+
 	template<typename Ret>
 	struct CallbackResults
 	{
@@ -14,10 +16,16 @@ namespace multiprocessing
 	};
 
 	template<typename Ret, typename... Args>
-	CallbackResults<Ret> execute_callback_in_each_processor(Ret (*callback)(Args...), Args... args)
+	CallbackResults<Ret> execute_callback_in_each_processor(Ret (*callback)(unsigned int, Args...), Args... args)
 	{
-		auto processor_count = ::KeQueryActiveProcessorCountEx(ALL_PROCESSOR_GROUPS);
+		auto processor_count = get_processor_count();
 		auto return_values = new (PagedPool) Ret[processor_count];
+
+		if (!return_values)
+		{
+			KdPrint(("[-] could not allocate a return values buffer\n"));
+			return { 0, nullptr };
+		}
 
 		CallbackResults<Ret> callback_results = {
 			processor_count = processor_count,
@@ -46,7 +54,7 @@ namespace multiprocessing
 			KdPrint(("[*] executing a callback function on processor %d in group %d\n",
 				processor_number.Number, processor_number.Group));
 
-			auto ret = callback(args...);
+			auto ret = callback(i, args...);
 			return_values[i] = ret;
 
 			::KeRevertToUserGroupAffinityThread(&old_affinity);
@@ -56,9 +64,9 @@ namespace multiprocessing
 	}
 
 	template<typename... Args>
-	void execute_callback_in_each_processor(void (*callback)(Args...), Args... args)
+	void execute_callback_in_each_processor(void (*callback)(unsigned int, Args...), Args... args)
 	{
-		auto processor_count = ::KeQueryActiveProcessorCountEx(ALL_PROCESSOR_GROUPS);
+		auto processor_count = get_processor_count();
 
 		for (auto i = 0u; i < processor_count; i++)
 		{
@@ -82,7 +90,7 @@ namespace multiprocessing
 			KdPrint(("[*] executing a callback function on processor %d in group %d\n",
 				processor_number.Number, processor_number.Group));
 
-			callback(args...);
+			callback(i, args...);
 
 			::KeRevertToUserGroupAffinityThread(&old_affinity);
 		}
