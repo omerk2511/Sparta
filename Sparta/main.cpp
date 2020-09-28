@@ -3,10 +3,10 @@
 #include "memory.h"
 #include "validation.h"
 #include "vmx.h"
-#include "proccessor_info.h"
+#include "processor_context.h"
 #include "multiprocessing.h"
 
-ProcessorInfo* g_processors_info{ nullptr };
+ProcessorContext* g_processors_context{ nullptr };
 
 void unload_routine(PDRIVER_OBJECT driver_object);
 
@@ -31,9 +31,9 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING re
 	}
 
 	auto processor_count = multiprocessing::get_processor_count();
-	g_processors_info = new (NonPagedPool) ProcessorInfo[processor_count];
+	g_processors_context = new (NonPagedPool) ProcessorContext[processor_count];
 
-	if (!g_processors_info)
+	if (!g_processors_context)
 	{
 		KdPrint(("[-] could not allocate the processor info array\n"));
 		return STATUS_INSUFFICIENT_RESOURCES;
@@ -65,8 +65,8 @@ void unload_routine(PDRIVER_OBJECT driver_object)
 
 	// TODO: vmxoff in every processor, free vmxon & vmcs regions
 
-	delete[] g_processors_info;
-	g_processors_info = nullptr;
+	delete[] g_processors_context;
+	g_processors_context = nullptr;
 
 	KdPrint(("[+] unloaded sparta successfully\n"));
 }

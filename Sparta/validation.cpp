@@ -35,7 +35,7 @@ bool validation::is_vmx_supported()
 
     ::__cpuid(
         reinterpret_cast<int*>(&features_info),
-        static_cast<int>(intel::CpuidType::kGetFeatures)
+        static_cast<int>(intel::CpuidType::GET_FEATURES)
     );
 
     if (!features_info.ecx.vmx)
@@ -44,7 +44,7 @@ bool validation::is_vmx_supported()
         return false;
     }
 
-    intel::Ia32FeatureControl feature_control = { ::__readmsr(static_cast<unsigned long>(intel::Msr::kIa32FeatureControl)) };
+    intel::Ia32FeatureControl feature_control = { ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_FEATURE_CONTROL)) };
 
     if (feature_control.lock &&
         ((!feature_control.enable_vmxon && !features_info.ecx.smx) ||

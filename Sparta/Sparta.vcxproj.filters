@@ -51,10 +51,10 @@
     <ClInclude Include="memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="proccessor_info.h">
+    <ClInclude Include="helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="helpers.h">
+    <ClInclude Include="processor_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

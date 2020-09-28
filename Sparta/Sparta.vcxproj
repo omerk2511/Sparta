@@ -154,7 +154,7 @@
     <ClInclude Include="intel.h" />
     <ClInclude Include="multiprocessing.h" />
     <ClInclude Include="memory.h" />
-    <ClInclude Include="proccessor_info.h" />
+    <ClInclude Include="processor_context.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="validation.h" />
     <ClInclude Include="vmx.h" />
