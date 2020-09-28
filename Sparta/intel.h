@@ -54,86 +54,86 @@ namespace intel
     {
         union
         {
-            int raw;
+            unsigned int raw;
         } eax;
 
         union
         {
-            int raw;
+            unsigned int raw;
         } ebx;
 
         union
         {
             struct
             {
-                int sse3 : 1;
-                int pclmul : 1;
-                int dtes64 : 1;
-                int monitor : 1;
-                int ds_cpl : 1;
-                int vmx : 1;
-                int smx : 1;
-                int est : 1;
-                int tm2 : 1;
-                int ssse3 : 1;
-                int cid : 1;
-                int fma : 1;
-                int cx16 : 1;
-                int etprd : 1;
-                int pdcm : 1;
-                int pcide : 1;
-                int dca : 1;
-                int sse4_1 : 1;
-                int sse4_2 : 1;
-                int x2apic : 1;
-                int movbe : 1;
-                int popcnt : 1;
-                int aes : 1;
-                int xsave : 1;
-                int osxsave : 1;
-                int avx : 1;
+                unsigned int sse3 : 1;
+                unsigned int pclmul : 1;
+                unsigned int dtes64 : 1;
+                unsigned int monitor : 1;
+                unsigned int ds_cpl : 1;
+                unsigned int vmx : 1;
+                unsigned int smx : 1;
+                unsigned int est : 1;
+                unsigned int tm2 : 1;
+                unsigned int ssse3 : 1;
+                unsigned int cid : 1;
+                unsigned int fma : 1;
+                unsigned int cx16 : 1;
+                unsigned int etprd : 1;
+                unsigned int pdcm : 1;
+                unsigned int pcide : 1;
+                unsigned int dca : 1;
+                unsigned int sse4_1 : 1;
+                unsigned int sse4_2 : 1;
+                unsigned int x2apic : 1;
+                unsigned int movbe : 1;
+                unsigned int popcnt : 1;
+                unsigned int aes : 1;
+                unsigned int xsave : 1;
+                unsigned int osxsave : 1;
+                unsigned int avx : 1;
             };
 
-            int raw;
+            unsigned int raw;
         } ecx;
 
         union
         {
             struct
             {
-                int fpu : 1;
-                int vme : 1;
-                int de : 1;
-                int pse : 1;
-                int tsc : 1;
-                int msr : 1;
-                int pae : 1;
-                int mce : 1;
-                int cx8 : 1;
-                int apic : 1;
-                int sep : 1;
-                int mtrr : 1;
-                int pge : 1;
-                int mca : 1;
-                int cmov : 1;
-                int pat : 1;
-                int pse36 : 1;
-                int psn : 1;
-                int clf : 1;
-                int dtes : 1;
-                int acpi : 1;
-                int mmx : 1;
-                int fxsr : 1;
-                int sse : 1;
-                int sse2 : 1;
-                int ss : 1;
-                int htt : 1;
-                int tm1 : 1;
-                int ia64 : 1;
-                int pbe : 1;
+                unsigned int fpu : 1;
+                unsigned int vme : 1;
+                unsigned int de : 1;
+                unsigned int pse : 1;
+                unsigned int tsc : 1;
+                unsigned int msr : 1;
+                unsigned int pae : 1;
+                unsigned int mce : 1;
+                unsigned int cx8 : 1;
+                unsigned int apic : 1;
+                unsigned int sep : 1;
+                unsigned int mtrr : 1;
+                unsigned int pge : 1;
+                unsigned int mca : 1;
+                unsigned int cmov : 1;
+                unsigned int pat : 1;
+                unsigned int pse36 : 1;
+                unsigned int psn : 1;
+                unsigned int clf : 1;
+                unsigned int dtes : 1;
+                unsigned int acpi : 1;
+                unsigned int mmx : 1;
+                unsigned int fxsr : 1;
+                unsigned int sse : 1;
+                unsigned int sse2 : 1;
+                unsigned int ss : 1;
+                unsigned int htt : 1;
+                unsigned int tm1 : 1;
+                unsigned int ia64 : 1;
+                unsigned int pbe : 1;
             };
 
-            int raw;
+            unsigned int raw;
         } edx;
     };
 
@@ -172,6 +172,11 @@ namespace intel
 
     struct Vmcs
     {
+        unsigned int revision_identifier : 31;
+        unsigned int shadow_vmcs_indicatior : 1;
 
+        unsigned int vmx_abort_indicator;
+
+        unsigned char data[VMCS_REGION_SIZE - 0x08];
     };
 }

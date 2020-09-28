@@ -35,25 +35,21 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING re
 
 	if (!g_processors_context)
 	{
-		KdPrint(("[-] could not allocate the processor info array\n"));
+		KdPrint(("[-] could not allocate the processor context array\n"));
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 
-	multiprocessing::execute_callback_in_each_processor(vmx::enable_vmx_operation);
-	KdPrint(("[+] enabled vmx operation successfully\n"));
-
-	auto results = multiprocessing::execute_callback_in_each_processor(vmx::vmxon);
+	auto results = multiprocessing::execute_callback_in_each_processor(vmx::initialize_vmx);
 
 	for (auto i = 0; i < results.processor_count; i++)
 	{
 		if (!results.return_values[i])
 		{
-			KdPrint(("[-] could not enter vmx root mode on processor %d\n", i));
+			KdPrint(("[-] could not initialize vmx mode on processor %d\n", i));
 			return STATUS_HV_OPERATION_FAILED; // TODO: vmxoff in every initialized processor
 		}
 	}
 
-	KdPrint(("[+] entered vmx root mode successfully\n"));
 	KdPrint(("[+] loaded sparta successfully\n"));
 
 	return STATUS_SUCCESS;
