@@ -2,6 +2,8 @@
 
 #include <ntddk.h>
 
+#include "helpers.h"
+
 void* operator new(size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0);
 void* operator new[](size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0);
 
@@ -9,111 +11,38 @@ void operator delete(void* address);
 void operator delete[](void* address);
 
 template<typename T>
-class UniquePointer final
+class DefaultDeleter final
 {
 public:
-	UniquePointer()
-		: _ptr{ nullptr }
+	void operator()(T* ptr)
 	{
+		delete ptr;
 	}
-
-	UniquePointer(T* ptr)
-		: _ptr{ ptr }
-	{
-	}
-
-public:
-	~UniquePointer()
-	{
-		if (_ptr)
-		{
-			delete _ptr;
-		}
-	}
-
-public:
-	UniquePointer(const UniquePointer&) = delete;
-	UniquePointer& operator=(const UniquePointer&) = delete;
-
-public:
-	UniquePointer(UniquePointer&& other)
-		: _ptr{ other._ptr }
-	{
-		other._ptr = nullptr;
-	}
-
-	UniquePointer& operator=(UniquePointer&& other)
-	{
-		if (this != &other)
-		{
-			if (_ptr) delete _ptr;
-
-			_ptr = other._ptr;
-			other._ptr = nullptr;
-		}
-
-		return *this;
-	}
-
-public:
-	T* get() { return _ptr; }
-	const T* get() const { return _ptr; }
-
-public:
-	T* release()
-	{
-		auto temp = _ptr;
-		_ptr = nullptr;
-		return temp;
-	}
-
-	void reset(T* ptr)
-	{
-		auto current = _ptr;
-		_ptr = ptr;
-
-		if (_ptr)
-		{
-			delete _ptr;
-		}
-	}
-
-	void swap(UniquePointer<T>& other)
-	{
-		auto temp = _ptr;
-		_ptr = other._ptr;
-		other._ptr = temp;
-	}
-
-public:
-	T& operator*() { return *_ptr; }
-	const T& operator*() const { return *_ptr; }
-
-public:
-	T* operator->() { return _ptr; }
-	const T* operator->() const { return _ptr; }
-
-public:
-	T& operator[](int index) { return _ptr[index]; };
-	const T& operator[](int index) const { return _ptr[index]; };
-
-public:
-	explicit operator bool() const { return _ptr; }
-
-private:
-	T* _ptr;
 };
 
 template<typename T>
-class UniquePointer<T[]> final
+class DefaultDeleter<T[]> final
 {
+public:
+	void operator()(T* ptr)
+	{
+		delete[] ptr;
+	}
+};
+
+template<typename T>
+class UniquePointer final
+{
+private:
+	using _T = remove_extent_t<T>;
+
 public:
 	UniquePointer()
 		: _ptr{ nullptr }
 	{
 	}
 
-	UniquePointer(T* ptr)
+	UniquePointer(_T* ptr)
 		: _ptr{ ptr }
 	{
 	}
@@ -123,7 +52,7 @@ public:
 	{
 		if (_ptr)
 		{
-			delete[] _ptr;
+			_deleter(_ptr);
 		}
 	}
 
@@ -142,7 +71,10 @@ public:
 	{
 		if (this != &other)
 		{
-			if (_ptr) delete[] _ptr;
+			if (_ptr)
+			{
+				_deleter(_ptr);
+			}
 
 			_ptr = other._ptr;
 			other._ptr = nullptr;
@@ -152,25 +84,25 @@ public:
 	}
 
 public:
-	T* get() { return _ptr; }
-	const T* get() const { return _ptr; }
+	_T* get() { return _ptr; }
+	const _T* get() const { return _ptr; }
 
 public:
-	T* release()
+	_T* release()
 	{
 		auto temp = _ptr;
 		_ptr = nullptr;
 		return temp;
 	}
 
-	void reset(T* ptr)
+	void reset(_T* ptr)
 	{
 		auto current = _ptr;
 		_ptr = ptr;
 
 		if (_ptr)
 		{
-			delete[] _ptr;
+			_deleter(_ptr);
 		}
 	}
 
@@ -182,20 +114,21 @@ public:
 	}
 
 public:
-	T& operator*() { return *_ptr; }
-	const T& operator*() const { return *_ptr; }
+	_T& operator*() { return *_ptr; }
+	const _T& operator*() const { return *_ptr; }
 
 public:
-	T* operator->() { return _ptr; }
-	const T* operator->() const { return _ptr; }
+	_T* operator->() { return _ptr; }
+	const _T* operator->() const { return _ptr; }
 
 public:
-	T& operator[](int index) { return _ptr[index]; };
-	const T& operator[](int index) const { return _ptr[index]; };
+	_T& operator[](int index) { return _ptr[index]; };
+	const _T& operator[](int index) const { return _ptr[index]; };
 
 public:
 	explicit operator bool() const { return _ptr; }
 
 private:
-	T* _ptr;
+	_T* _ptr;
+	DefaultDeleter<T> _deleter;
 };

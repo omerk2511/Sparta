@@ -14,3 +14,12 @@ constexpr bool is_same = false;
 
 template<typename T>
 constexpr bool is_same<T, T> = true;
+
+template<typename T>
+struct remove_extent { using type = T; };
+
+template<typename T>
+struct remove_extent<T[]> { using type = T; };
+
+template<typename T>
+using remove_extent_t = typename remove_extent<T>::type;
