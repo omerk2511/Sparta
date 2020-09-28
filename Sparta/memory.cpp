@@ -20,7 +20,6 @@ void* operator new[](size_t size, POOL_TYPE pool_type, ULONG tag)
     );
 }
 
-
 void operator delete(void* address)
 {
 	::ExFreePool(address);
