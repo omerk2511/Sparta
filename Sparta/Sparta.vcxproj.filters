@@ -51,11 +51,19 @@
     <ClInclude Include="memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="helpers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="processor_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="templates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="asm_helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="asm_helpers.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

@@ -103,8 +103,7 @@
     <DriverType>WDM</DriverType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -151,15 +150,18 @@
     <ClCompile Include="vmx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="asm_helpers.h" />
     <ClInclude Include="intel.h" />
     <ClInclude Include="multiprocessing.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="processor_context.h" />
-    <ClInclude Include="helpers.h" />
+    <ClInclude Include="templates.h" />
     <ClInclude Include="validation.h" />
     <ClInclude Include="vmx.h" />
   </ItemGroup>
+  <ItemGroup>
+    <MASM Include="asm_helpers.asm" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

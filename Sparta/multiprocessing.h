@@ -2,7 +2,7 @@
 
 #include <ntddk.h>
 
-#include "helpers.h"
+#include "templates.h"
 #include "memory.h"
 
 namespace multiprocessing

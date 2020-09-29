@@ -45,7 +45,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING re
 	{
 		if (!results.return_values[i])
 		{
-			KdPrint(("[-] could not initialize vmx mode on processor %d\n", i));
+			KdPrint(("[-] could not initialize vmx on processor %d\n", i));
 			return STATUS_HV_OPERATION_FAILED; // TODO: vmxoff in every initialized processor
 		}
 	}

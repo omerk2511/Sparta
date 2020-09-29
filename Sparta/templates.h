@@ -23,3 +23,18 @@ struct remove_extent<T[]> { using type = T; };
 
 template<typename T>
 using remove_extent_t = typename remove_extent<T>::type;
+
+template<typename T>
+constexpr bool is_unsigned_integer = false;
+
+template<>
+constexpr bool is_unsigned_integer<unsigned int> = true;
+
+template<>
+constexpr bool is_unsigned_integer<unsigned short> = true;
+
+template<>
+constexpr bool is_unsigned_integer<unsigned long> = true;
+
+template<>
+constexpr bool is_unsigned_integer<unsigned long long> = true;

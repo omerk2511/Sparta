@@ -5,6 +5,8 @@
 #include "intel.h"
 #include "memory.h"
 #include "processor_context.h"
+#include "templates.h"
+#include "asm_helpers.h"
 
 extern ProcessorContext* g_processors_context;
 
@@ -12,6 +14,46 @@ namespace vmx
 {
 	void enable_vmx_operation();
 	void* vmxon();
+	void* setup_vmcs(unsigned int processor_index);
+	void vmlaunch();
+
+	template<typename T>
+		requires is_unsigned_integer<T>
+	struct VmreadResult
+	{
+		bool success;
+		T value;
+	};
+
+	template<typename T>
+	static inline constexpr VmreadResult<T> vmread(intel::VmcsField vmcs_field)
+		requires is_unsigned_integer<T>
+	{
+		size_t value{ };
+
+		auto ret = ::__vmx_vmread(static_cast<size_t>(vmcs_field), &value);
+
+		if (ret == STATUS_SUCCESS)
+		{
+			return {
+				true,
+				static_cast<T>(value)
+			};
+		}
+
+		return {
+			false,
+			0
+		};
+	}
+
+	template<typename T>
+	static inline constexpr bool vmwrite(intel::VmcsField vmcs_field, T value)
+		requires is_unsigned_integer<T>
+	{
+		auto ret = ::__vmx_vmwrite(static_cast<size_t>(vmcs_field), static_cast<size_t>(value));
+		return (ret == STATUS_SUCCESS);
+	}
 }
 
 bool vmx::initialize_vmx(unsigned int processor_index)
@@ -129,4 +171,55 @@ void* vmx::vmxon()
 	KdPrint(("[+] vmxon succeeded\n"));
 
 	return virtual_vmxon_region;
+}
+
+void* vmx::setup_vmcs(unsigned int processor_index)
+{
+	auto virtual_vmcs_region = new (NonPagedPool) intel::Vmcs;
+
+	if (!virtual_vmcs_region)
+	{
+		KdPrint(("[-] could not allocate a vmcs region\n"));
+		return nullptr;
+	}
+
+	::RtlSecureZeroMemory(virtual_vmcs_region, intel::VMXON_REGION_SIZE);
+
+	auto physical_vmcs_region = ::MmGetPhysicalAddress(virtual_vmcs_region).QuadPart;
+	KdPrint(("[+] vmcs region allocated @0x%p (virtual) -> @0x%p (physical)\n", virtual_vmcs_region, physical_vmcs_region));
+
+	auto ret = ::__vmx_vmclear(reinterpret_cast<unsigned long long*>(physical_vmcs_region));
+
+	if (ret != STATUS_SUCCESS)
+	{
+		delete[] virtual_vmcs_region;
+		KdPrint(("[-] vmclear failed\n"));
+
+		return nullptr;
+	}
+
+	ret = ::__vmx_vmptrld(reinterpret_cast<unsigned long long*>(physical_vmcs_region));
+
+	if (ret != STATUS_SUCCESS)
+	{
+		delete[] virtual_vmcs_region;
+		KdPrint(("[-] vmptrld failed\n"));
+
+		return nullptr;
+	}
+
+	vmwrite(intel::VmcsField::VMCS_CTRL_VIRTUAL_PROCESSOR_IDENTIFIER, static_cast<unsigned short>(processor_index + 1));
+	
+	auto segment_selectors = asm_helpers::get_segment_selectors();
+
+	vmwrite(intel::VmcsField::VMCS_GUEST_ES_SELECTOR, segment_selectors.es);
+	vmwrite(intel::VmcsField::VMCS_GUEST_CS_SELECTOR, segment_selectors.cs);
+	vmwrite(intel::VmcsField::VMCS_GUEST_SS_SELECTOR, segment_selectors.ss);
+	vmwrite(intel::VmcsField::VMCS_GUEST_DS_SELECTOR, segment_selectors.ds);
+	vmwrite(intel::VmcsField::VMCS_GUEST_FS_SELECTOR, segment_selectors.fs);
+	vmwrite(intel::VmcsField::VMCS_GUEST_GS_SELECTOR, segment_selectors.gs);
+	vmwrite(intel::VmcsField::VMCS_GUEST_LDTR_SELECTOR, segment_selectors.ldtr);
+	vmwrite(intel::VmcsField::VMCS_GUEST_TR_SELECTOR, segment_selectors.tr);
+
+	return virtual_vmcs_region;
 }
