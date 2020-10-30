@@ -223,7 +223,6 @@ void* vmx::setup_vmcs(unsigned int processor_index, void* saved_rsp)
 	// success &= vmwrite(intel::VmcsField::VMCS_CTRL_EPT_POINTER, 0ull); // use a real ept
 
 	success &= vmwrite(intel::VmcsField::VMCS_GUEST_VMCS_LINK_POINTER, VMCS_LINK_POINTER_NOT_USED);
-	success &= vmwrite(intel::VmcsField::VMCS_GUEST_DEBUGCTL, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_DEBUGCTL)));
 
 	intel::PinBasedVmxControls pin_based_vmx_controls = { 0 };
 
@@ -273,7 +272,6 @@ void* vmx::setup_vmcs(unsigned int processor_index, void* saved_rsp)
 	intel::VmEntryControls vm_entry_controls = { 0 };
 
 	vm_entry_controls.ia32e_mode_guest = 1;
-	vm_entry_controls.load_debug_controls = 1;
 
 	adjust_vmx_controls(
 		vm_entry_controls.raw,
@@ -464,6 +462,15 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 		guest_state->rdx = static_cast<unsigned long long>(cpuid_info.edx);
 
 		break;
+	}
+
+	case 28: {
+		intel::ControlRegisterAccessExitQualification cr_access_exit_qual = { exit_qualification };
+
+		if (cr_access_exit_qual.cr_number == 3 && cr_access_exit_qual.access_type == 0)
+		{
+			KdPrint(("[*] context switch!\n"));
+		}
 	}
 
 	case 31: {

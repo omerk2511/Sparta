@@ -611,4 +611,20 @@ namespace intel
             unsigned long load_pkrs : 1;
         };
     };
+
+    union ControlRegisterAccessExitQualification
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long cr_number : 4;
+            unsigned long long access_type : 2;
+            unsigned long long lmsw_operand_type : 1;
+            unsigned long long : 1;
+            unsigned long long mov_cr_gp_register : 4;
+            unsigned long long : 4;
+            unsigned long long lmsw_source_data : 16;
+        };
+    };
 }

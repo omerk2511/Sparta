@@ -102,6 +102,9 @@ _vmresume ENDP
 _end_initialize_vmx PROC
 	cli
 
+	mov rax, 0
+	mov cr3, rax
+
 cpuid_loop:
 	mov eax, 0
 	cpuid
