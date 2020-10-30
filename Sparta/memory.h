@@ -47,7 +47,6 @@ public:
 	{
 	}
 
-public:
 	~UniquePointer()
 	{
 		if (_ptr)
@@ -56,11 +55,9 @@ public:
 		}
 	}
 
-public:
 	UniquePointer(const UniquePointer&) = delete;
 	UniquePointer& operator=(const UniquePointer&) = delete;
 
-public:
 	UniquePointer(UniquePointer&& other)
 		: _ptr{ other._ptr }
 	{
@@ -83,11 +80,9 @@ public:
 		return *this;
 	}
 
-public:
 	_T* get() { return _ptr; }
 	const _T* get() const { return _ptr; }
 
-public:
 	_T* release()
 	{
 		auto temp = _ptr;
@@ -113,19 +108,15 @@ public:
 		other._ptr = temp;
 	}
 
-public:
 	_T& operator*() { return *_ptr; }
 	const _T& operator*() const { return *_ptr; }
 
-public:
 	_T* operator->() { return _ptr; }
 	const _T* operator->() const { return _ptr; }
 
-public:
 	_T& operator[](int index) { return _ptr[index]; };
 	const _T& operator[](int index) const { return _ptr[index]; };
 
-public:
 	explicit operator bool() const { return _ptr; }
 
 private:

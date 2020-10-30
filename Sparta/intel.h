@@ -3,14 +3,41 @@
 
 namespace intel
 {
-    enum class Msr
+    enum class Msr : unsigned long
     {
         IA32_FEATURE_CONTROL = 0x3a,
+        IA32_SYSENTER_CS = 0x174,
+        IA32_SYSENTER_ESP = 0x175,
+        IA32_SYSENTER_EIP = 0x176,
+        IA32_DEBUGCTL = 0x1d9,
         IA32_VMX_BASIC = 0x480,
+        IA32_VMX_PINBASED_CTLS = 0x481,
+        IA32_VMX_PROCBASED_CTLS = 0x482,
+        IA32_VMX_EXIT_CTLS = 0x483,
+        IA32_VMX_ENTRY_CTLS = 0x484,
         IA32_VMX_CR0_FIXED0 = 0x486,
         IA32_VMX_CR0_FIXED1 = 0x487,
         IA32_VMX_CR4_FIXED0 = 0x488,
-        IA32_VMX_CR4_FIXED1 = 0x489
+        IA32_VMX_CR4_FIXED1 = 0x489,
+        IA32_VMX_PROCBASED_CTLS2 = 0x48b,
+        IA32_VMX_TRUE_PINBASED_CTLS = 0x48d,
+        IA32_VMX_TRUE_PROCBASED_CTLS = 0x48e,
+        IA32_VMX_TRUE_EXIT_CTLS = 0x48f,
+        IA32_VMX_TRUE_ENTRY_CTLS = 0x490,
+        IA32_FS_BASE = 0xc0000100,
+        IA32_GS_BASE = 0xc0000101
+    };
+
+    union Ia32FeatureControl
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long lock : 1;
+            unsigned long long enable_smx : 1;
+            unsigned long long enable_vmxon : 1;
+        };
     };
 
     union Ia32VmxBasic
@@ -32,22 +59,31 @@ namespace intel
         };
     };
 
-    union Ia32FeatureControl
+#pragma pack(push, 1)
+    union Ia32VmxControlsHint
     {
         unsigned long long raw;
 
         struct
         {
-            unsigned long long lock : 1;
-            unsigned long long enable_smx : 1;
-            unsigned long long enable_vmxon : 1;
+            unsigned long allowed_0_settings;
+            unsigned long allowed_1_settings;
         };
     };
+#pragma pack(pop)
 
     enum class CpuidType
     {
         GET_VENDOR_STRING,
         GET_FEATURES
+    };
+
+    struct GeneralCpuidInfo
+    {
+        unsigned int eax;
+        unsigned int ebx;
+        unsigned int ecx;
+        unsigned int edx;
     };
 
     struct CpuidGetFeaturesInfo
@@ -137,6 +173,29 @@ namespace intel
         } edx;
     };
 
+    union Cr0
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long pe : 1;
+            unsigned long long mp : 1;
+            unsigned long long em : 1;
+            unsigned long long ts : 1;
+            unsigned long long et : 1;
+            unsigned long long ne : 1;
+            unsigned long long : 10;
+            unsigned long long wp : 1;
+            unsigned long long : 1;
+            unsigned long long am : 1;
+            unsigned long long : 10;
+            unsigned long long nw : 1;
+            unsigned long long cd : 1;
+            unsigned long long pg : 1;
+        };
+    };
+
     union Cr4
     {
         unsigned long long raw;
@@ -164,6 +223,75 @@ namespace intel
             unsigned long long smep : 1;
             unsigned long long smap : 1;
             unsigned long long pke : 1;
+        };
+    };
+
+    union SegmentDescriptor
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long limit_0 : 16;
+            unsigned long long base_0 : 24;
+            unsigned long long attr_0 : 8;
+            unsigned long long limit_1 : 4;
+            unsigned long long attr_1 : 4;
+            unsigned long long base_1 : 8;
+        };
+    };
+
+    union SystemSegmentDescriptor
+    {
+        struct
+        {
+            unsigned long long raw_1;
+            unsigned long long raw_2;
+        };
+
+        struct
+        {
+            unsigned long long limit_0 : 16;
+            unsigned long long base_0 : 24;
+            unsigned long long attr_0 : 8;
+            unsigned long long limit_1 : 4;
+            unsigned long long attr_1 : 4;
+            unsigned long long base_1 : 40;
+        };
+    };
+
+#pragma pack(push, 1)
+    struct Gdtr
+    {
+        unsigned short limit;
+        unsigned long long base;
+    };
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+    struct Idtr
+    {
+        unsigned short limit;
+        unsigned long long base;
+    };
+#pragma pack(pop)
+
+    union VmxSegmentAccessRights
+    {
+        unsigned long raw;
+
+        struct
+        {
+            unsigned long segment_type : 4;
+            unsigned long descriptor_type : 1;
+            unsigned long dpl : 2;
+            unsigned long segment_present : 1;
+            unsigned long : 4;
+            unsigned long avl : 1;
+            unsigned long cs_64_bit_mode_active : 1;
+            unsigned long default_operation_size : 1;
+            unsigned long granularity : 1;
+            unsigned long segment_unusable : 1;
         };
     };
 
@@ -336,5 +464,151 @@ namespace intel
         VMCS_HOST_SYSENTER_EIP = 0x6c12,
         VMCS_HOST_RSP = 0x6c14,
         VMCS_HOST_RIP = 0x6c16
+    };
+
+    union PinBasedVmxControls
+    {
+        unsigned long raw;
+
+        struct
+        {
+            unsigned long external_interrupt_exiting : 1;
+            unsigned long : 1;
+            unsigned long : 1;
+            unsigned long nmi_exiting : 1;
+            unsigned long : 1;
+            unsigned long virtual_nmis : 1;
+            unsigned long activate_vmx_preemption_time : 1;
+            unsigned long process_posted_interrupts : 1;
+        };
+    };
+
+    union PrimaryProcessorBasedVmxControls
+    {
+        unsigned long raw;
+
+        struct
+        {
+            unsigned long : 2;
+            unsigned long interrupt_window_exiting : 1;
+            unsigned long use_tsc_offsetting : 1;
+            unsigned long : 3;
+            unsigned long hlt_exiting : 1;
+            unsigned long : 1;
+            unsigned long invlpg_exiting : 1;
+            unsigned long mwait_exiting : 1;
+            unsigned long rdpmc_exiting : 1;
+            unsigned long rdtsc_exiting : 1;
+            unsigned long : 2;
+            unsigned long cr3_load_exiting : 1;
+            unsigned long cr3_store_exiting : 1;
+            unsigned long : 2;
+            unsigned long cr8_load_exiting : 1;
+            unsigned long cr8_store_exiting : 1;
+            unsigned long use_tpr_shadow : 1;
+            unsigned long nmi_window_exiting : 1;
+            unsigned long mov_dr_exiting : 1;
+            unsigned long unconditional_io_exiting : 1;
+            unsigned long use_io_bitmaps : 1;
+            unsigned long : 1;
+            unsigned long monitor_trap_flag : 1;
+            unsigned long user_msr_bitmaps : 1;
+            unsigned long monitor_exiting : 1;
+            unsigned long pause_exiting : 1;
+            unsigned long activate_secondary_controls : 1;
+        };
+    };
+
+    union SecondaryProcessorBasedVmxControls
+    {
+        unsigned long raw;
+
+        struct
+        {
+            unsigned long virtualize_apic_accesses : 1;
+            unsigned long enable_ept : 1;
+            unsigned long descriptor_table_exiting : 1;
+            unsigned long enable_rdtscp : 1;
+            unsigned long virtualize_x2apic_mode : 1;
+            unsigned long enable_vpid : 1;
+            unsigned long wbinvd_exiting : 1;
+            unsigned long unrestricted_guest : 1;
+            unsigned long apic_register_virtualization : 1;
+            unsigned long virtual_interrupt_delivery : 1;
+            unsigned long pause_loop_exiting : 1;
+            unsigned long rdrand_exiting : 1;
+            unsigned long enable_invpcid : 1;
+            unsigned long enable_vm_functions : 1;
+            unsigned long vmcs_shadowing : 1;
+            unsigned long enable_encls_exiting : 1;
+            unsigned long rdseed_exiting : 1;
+            unsigned long enable_pml : 1;
+            unsigned long ept_violation_ve : 1;
+            unsigned long conceal_vmx_from_pt : 1;
+            unsigned long enable_xsaves_xrstors : 1;
+            unsigned long : 1;
+            unsigned long mode_based_execute_control_for_ept : 1;
+            unsigned long sub_page_write_permissions_for_ept : 1;
+            unsigned long intel_pt_uses_guest_physical_addresses : 1;
+            unsigned long use_tsc_scaling : 1;
+            unsigned long enable_user_wait_and_pause : 1;
+            unsigned long : 1;
+            unsigned long enable_enclv_exiting : 1;
+        };
+    };
+
+    union VmExitControls
+    {
+        unsigned long raw;
+
+        struct
+        {
+            unsigned long : 2;
+            unsigned long save_debug_controls : 1;
+            unsigned long : 6;
+            unsigned long host_address_space_size : 1;
+            unsigned long : 2;
+            unsigned long load_ia32_perf_global_ctrl : 1;
+            unsigned long : 2;
+            unsigned long acknowledge_interrupt_on_exit : 1;
+            unsigned long : 2;
+            unsigned long save_ia32_pat : 1;
+            unsigned long load_ia32_pat : 1;
+            unsigned long save_ia32_efer : 1;
+            unsigned long load_ia32_efer : 1;
+            unsigned long save_vmx_preemption_timer_value : 1;
+            unsigned long clear_ia32_bndcfgs : 1;
+            unsigned long conceal_vmx_from_pt : 1;
+            unsigned long clear_ia32_rtit_ctl : 1;
+            unsigned long : 2;
+            unsigned long load_cet_state : 1;
+            unsigned long load_pkrs : 1;
+        };
+    };
+
+    union VmEntryControls
+    {
+        unsigned long raw;
+
+        struct
+        {
+            unsigned long : 2;
+            unsigned long load_debug_controls : 1;
+            unsigned long : 6;
+            unsigned long ia32e_mode_guest : 1;
+            unsigned long entry_to_smm : 1;
+            unsigned long deactivate_dual_monitor_treatment : 1;
+            unsigned long : 1;
+            unsigned long load_ia32_perf_global_ctrl : 1;
+            unsigned long load_ia32_pat : 1;
+            unsigned long load_ia32_efer : 1;
+            unsigned long load_ia32_bndcfgs : 1;
+            unsigned long conceal_vmx_from_pt : 1;
+            unsigned long load_ia32_rtit_ctl : 1;
+            unsigned long : 1;
+            unsigned long load_cet_state : 1;
+            unsigned long : 1;
+            unsigned long load_pkrs : 1;
+        };
     };
 }

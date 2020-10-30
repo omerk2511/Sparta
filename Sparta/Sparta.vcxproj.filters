@@ -60,6 +60,9 @@
     <ClInclude Include="asm_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="scope_guard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="asm_helpers.asm">

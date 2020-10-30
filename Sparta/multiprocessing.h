@@ -4,6 +4,7 @@
 
 #include "templates.h"
 #include "memory.h"
+#include "scope_guard.h"
 
 namespace multiprocessing
 {
@@ -56,6 +57,7 @@ namespace multiprocessing
 			new_affinity.Mask = 1ull << processor_number.Number;
 
 			::KeSetSystemGroupAffinityThread(&new_affinity, &old_affinity);
+			ScopeGuard affinity_revert_guard{ [&]() { ::KeRevertToUserGroupAffinityThread(&old_affinity); } };
 
 			KdPrint(("[*] executing a callback function on processor %d in group %d\n",
 				processor_number.Number, processor_number.Group));
@@ -68,8 +70,6 @@ namespace multiprocessing
 			{
 				return_values[i] = callback(i, args...);
 			}
-
-			::KeRevertToUserGroupAffinityThread(&old_affinity);
 		}
 
 		if constexpr (!is_same<Ret, void>)

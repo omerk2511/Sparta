@@ -137,6 +137,7 @@
     <ClCompile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WarningVersion>18</WarningVersion>
+      <WarningLevel>Level4</WarningLevel>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -155,6 +156,7 @@
     <ClInclude Include="multiprocessing.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="processor_context.h" />
+    <ClInclude Include="scope_guard.h" />
     <ClInclude Include="templates.h" />
     <ClInclude Include="validation.h" />
     <ClInclude Include="vmx.h" />
