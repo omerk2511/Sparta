@@ -473,8 +473,7 @@ namespace intel
         struct
         {
             unsigned long external_interrupt_exiting : 1;
-            unsigned long : 1;
-            unsigned long : 1;
+            unsigned long : 2;
             unsigned long nmi_exiting : 1;
             unsigned long : 1;
             unsigned long virtual_nmis : 1;
@@ -512,7 +511,7 @@ namespace intel
             unsigned long use_io_bitmaps : 1;
             unsigned long : 1;
             unsigned long monitor_trap_flag : 1;
-            unsigned long user_msr_bitmaps : 1;
+            unsigned long use_msr_bitmaps : 1;
             unsigned long monitor_exiting : 1;
             unsigned long pause_exiting : 1;
             unsigned long activate_secondary_controls : 1;

@@ -286,7 +286,7 @@ void* vmx::setup_vmcs(unsigned int processor_index, void* saved_rsp)
 
 	intel::SecondaryProcessorBasedVmxControls secondary_processor_based_vmx_controls = { 0 };
 
-	secondary_processor_based_vmx_controls.enable_ept = 0; // fix later
+	secondary_processor_based_vmx_controls.enable_ept = 0;
 	secondary_processor_based_vmx_controls.enable_vpid = 1;
 	
 	adjust_vmx_controls(
@@ -456,6 +456,13 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 			static_cast<int>(guest_state->rax)
 		);
 
+		if ((guest_state->rax & 0xffffffff) == 0)
+		{
+			cpuid_info.ebx = 0x72617053;
+			cpuid_info.edx = 0x70536174;
+			cpuid_info.ecx = 0x61747261;
+		}
+
 		guest_state->rax = static_cast<unsigned long long>(cpuid_info.eax);
 		guest_state->rbx = static_cast<unsigned long long>(cpuid_info.ebx);
 		guest_state->rcx = static_cast<unsigned long long>(cpuid_info.ecx);
@@ -471,6 +478,8 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 		{
 			KdPrint(("[*] context switch!\n"));
 		}
+
+		break;
 	}
 
 	case 31: {
@@ -478,6 +487,8 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 
 		guest_state->rax = msr & 0xffffffff;
 		guest_state->rdx = msr >> 32;
+
+		break;
 	}
 
 	case 32: {
@@ -485,6 +496,8 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 			static_cast<unsigned long>(guest_state->rcx),
 			(guest_state->rax & 0xffffffff) | (guest_state->rdx << 32)
 		);
+
+		break;
 	}
 	}
 
