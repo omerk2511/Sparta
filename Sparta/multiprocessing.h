@@ -78,7 +78,11 @@ namespace multiprocessing
 
 		ipi_context.callback = callback;
 		ipi_context.arg = arg;
-		ipi_context.return_values = return_values;
+
+		if constexpr (!kstd::is_same<Ret, void>)
+		{
+			ipi_context.return_values = return_values;
+		}
 
 		::KeIpiGenericCall(
 			&GenericIpiHandler<Ret, Arg>,

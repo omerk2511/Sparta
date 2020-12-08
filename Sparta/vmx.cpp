@@ -123,6 +123,7 @@ void vmx::adjust_vmx_controls(unsigned long& vmx_controls, intel::Ia32VmxControl
 #pragma pack(push, 1)
 struct GuestState
 {
+	unsigned long long rsp;
 	unsigned long long rax;
 	unsigned long long rcx;
 	unsigned long long rdx;
@@ -140,6 +141,31 @@ struct GuestState
 	unsigned long long r15;
 };
 #pragma pack(pop)
+
+static unsigned long long select_register(GuestState* guest_state, unsigned long long register_number)
+{
+	switch (register_number)
+	{
+	case 0: return guest_state->rax;
+	case 1: return guest_state->rcx;
+	case 2: return guest_state->rdx;
+	case 3: return guest_state->rbx;
+	case 4: return guest_state->rsp;
+	case 5: return guest_state->rbp;
+	case 6: return guest_state->rsi;
+	case 7: return guest_state->rdi;
+	case 8: return guest_state->r8;
+	case 9: return guest_state->r9;
+	case 10: return guest_state->r10;
+	case 11: return guest_state->r11;
+	case 12: return guest_state->r12;
+	case 13: return guest_state->r13;
+	case 14: return guest_state->r14;
+	case 15: return guest_state->r15;
+	}
+
+	return 0;
+}
 
 extern "C" void vmexit_handler(GuestState* guest_state)
 {
@@ -179,6 +205,7 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 
 		if (cr_access_exit_qual.cr_number == 3 && cr_access_exit_qual.access_type == 0)
 		{
+			vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CR3, select_register(guest_state, cr_access_exit_qual.mov_cr_gp_register));
 			KdPrint(("[*] context switch!\n"));
 		}
 

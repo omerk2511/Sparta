@@ -1,3 +1,4 @@
+#include <ntifs.h>
 #include <ntddk.h>
 
 #include "memory.h"

@@ -6,6 +6,13 @@
 static loader::VcpuContext* allocate_vcpu_context();
 static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long host_cr3);
 
+static bool is_hypervisor_present()
+{
+	intel::GeneralCpuidInfo cpuid_info = { 0 };
+	::__cpuid(reinterpret_cast<int*>(&cpuid_info), 0);
+	return (cpuid_info.ebx == 0x72617053);
+}
+
 bool loader::load_sparta(SpartaContext* sparta_context)
 {
 	auto processor_index = static_cast<unsigned long>(multiprocessing::get_current_processor_id());
@@ -43,8 +50,13 @@ bool loader::load_sparta(SpartaContext* sparta_context)
     }
     KdPrint(("[+] successfully initialized the vmcs in processor %ul\n", processor_index));
 
-	// save context now!
-    auto success = vmx::vmlaunch();
+	auto success = true;
+	::RtlCaptureContext(&vcpu_context->guest_context);
+
+	if (!is_hypervisor_present())
+	{
+		success = vmx::vmlaunch();
+	}
 
     if (!success)
     {
