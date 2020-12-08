@@ -1,6 +1,8 @@
 #pragma once
 #pragma warning(disable: 4201)
 
+extern "C" void _sgdt(void*);
+
 namespace intel
 {
     enum class Msr : unsigned long
@@ -276,7 +278,7 @@ namespace intel
     };
 #pragma pack(pop)
 
-    union VmxSegmentAccessRights
+    union SegmentAccessRights
     {
         unsigned long raw;
 
@@ -626,4 +628,7 @@ namespace intel
             unsigned long long lmsw_source_data : 16;
         };
     };
+
+    unsigned long long get_system_segment_base(unsigned short segment_selector, unsigned long long gdt_base);
+    intel::SegmentAccessRights get_segment_access_rights(unsigned long selector);
 }

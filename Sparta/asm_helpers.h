@@ -16,7 +16,7 @@ extern "C"
 	void* _get_rsp();
 
 	void _vmexit_handler();
-	bool _end_initialize_vmx();
+	void _restore_guest();
 }
 
 namespace asm_helpers

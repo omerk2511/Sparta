@@ -99,7 +99,7 @@ _vmresume PROC
 	vmresume
 _vmresume ENDP
 
-_end_initialize_vmx PROC
+_restore_guest PROC
 	cli
 
 	mov rax, 0
@@ -109,6 +109,6 @@ cpuid_loop:
 	mov eax, 0
 	cpuid
 	jmp cpuid_loop
-_end_initialize_vmx ENDP
+_restore_guest ENDP
 
 END

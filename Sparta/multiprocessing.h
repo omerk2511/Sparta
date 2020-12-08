@@ -2,29 +2,64 @@
 
 #include <ntddk.h>
 
-#include "templates.h"
+#include "kstd.h"
 #include "memory.h"
 #include "scope_guard.h"
 
 namespace multiprocessing
 {
 	size_t get_processor_count();
+	size_t get_current_processor_id();
 
 	template<typename Ret>
 	struct CallbackResults
 	{
 		size_t processor_count;
-		UniquePointer<Ret[]> return_values;
+		kstd::UniquePointer<Ret[]> return_values;
 	};
 
-	template<typename Ret, typename... Args>
-	conditional_t<is_same<Ret, void>, void, CallbackResults<Ret>>
-		execute_callback_in_each_processor(Ret (*callback)(unsigned int, Args...), Args... args)
+	template<typename Ret>
+	struct BaseIpiContext
 	{
-		auto processor_count = get_processor_count();
-		Ret* return_values{ nullptr };
+		Ret* return_values;
+	};
 
-		if constexpr (!is_same<Ret, void>)
+	template<>
+	struct BaseIpiContext<void>
+	{};
+
+	template<typename Ret, typename Arg>
+	struct IpiContext : BaseIpiContext<Ret>
+	{
+		Ret (*callback)(Arg);
+		Arg arg;
+	};
+
+	template<typename Ret, typename Arg>
+	ULONG_PTR GenericIpiHandler(ULONG_PTR context)
+	{
+		auto ipi_context = reinterpret_cast<IpiContext<Ret, Arg>*>(context);
+
+		if constexpr (kstd::is_same<Ret, void>)
+		{
+			ipi_context->callback(ipi_context->arg);
+		}
+		else
+		{
+			ipi_context->return_values[get_current_processor_id()] = ipi_context->callback(ipi_context->arg);
+		}
+
+		return 0ull;
+	}
+
+	template<typename Ret, typename Arg>
+	kstd::conditional_t<kstd::is_same<Ret, void>, void, CallbackResults<Ret>>
+		execute_callback_in_each_processor(Ret (*callback)(Arg), Arg arg)
+	{
+		Ret* return_values{ nullptr };
+		auto processor_count = get_processor_count();
+
+		if constexpr (!kstd::is_same<Ret, void>)
 		{
 			return_values = new (PagedPool) Ret[processor_count];
 
@@ -39,45 +74,23 @@ namespace multiprocessing
 			UNREFERENCED_PARAMETER(return_values);
 		}
 
-		for (auto i = 0u; i < processor_count; i++)
-		{
-			PROCESSOR_NUMBER processor_number = { 0 };
-			auto status = ::KeGetProcessorNumberFromIndex(i, &processor_number);
+		IpiContext<Ret, Arg> ipi_context;
 
-			if (!NT_SUCCESS(status))
-			{
-				KdPrint(("[-] could not get the processor number of processor %d\n", i));
-				continue;
-			}
+		ipi_context.callback = callback;
+		ipi_context.arg = arg;
+		ipi_context.return_values = return_values;
 
-			GROUP_AFFINITY old_affinity = { 0 };
+		::KeIpiGenericCall(
+			&GenericIpiHandler<Ret, Arg>,
+			reinterpret_cast<ULONG_PTR>(&ipi_context)
+		);
 
-			GROUP_AFFINITY new_affinity = { 0 };
-			new_affinity.Group = processor_number.Group;
-			new_affinity.Mask = 1ull << processor_number.Number;
-
-			::KeSetSystemGroupAffinityThread(&new_affinity, &old_affinity);
-			ScopeGuard affinity_revert_guard{ [&]() { ::KeRevertToUserGroupAffinityThread(&old_affinity); } };
-
-			KdPrint(("[*] executing a callback function on processor %d in group %d\n",
-				processor_number.Number, processor_number.Group));
-
-			if constexpr (is_same<Ret, void>)
-			{
-				callback(i, args...);
-			}
-			else
-			{
-				return_values[i] = callback(i, args...);
-			}
-		}
-
-		if constexpr (!is_same<Ret, void>)
+		if constexpr (!kstd::is_same<Ret, void>)
 		{
 			return {
 				processor_count = processor_count,
 				return_values = return_values
 			};
-		}		
+		}
 	}
 }
