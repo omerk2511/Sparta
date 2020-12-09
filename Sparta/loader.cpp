@@ -45,7 +45,7 @@ bool loader::load_sparta(SpartaContext* sparta_context)
 
     if (!vcpu_context->vmcs_region)
     {
-        KdPrint(("[-] failed initializing vmx in processor %ul\n", processor_index));
+        KdPrint(("[-] failed initializing the vmcs in processor %ul\n", processor_index));
         return false;
     }
     KdPrint(("[+] successfully initialized the vmcs in processor %ul\n", processor_index));
@@ -53,10 +53,18 @@ bool loader::load_sparta(SpartaContext* sparta_context)
 	auto success = true;
 	::RtlCaptureContext(&vcpu_context->guest_context);
 
+	KIRQL old_irql;
+	KeRaiseIrql(2, &old_irql);
 	if (!is_hypervisor_present())
 	{
+		KdPrint(("[*] vmlaunch in host\n"));
 		success = vmx::vmlaunch();
 	}
+	else
+	{
+		KdPrint(("[*] in guest :)\n"));
+	}
+	::KeLowerIrql(old_irql);
 
     if (!success)
     {
@@ -248,16 +256,6 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_LDTR_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.ldtr).raw);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_TR_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.tr).raw);
 
-	success &= vmx::vmwrite(
-		intel::VmcsField::VMCS_GUEST_SYSENTER_CS,
-		static_cast<unsigned long>(::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_SYSENTER_CS)))
-	);
-
-	success &= vmx::vmwrite(
-		intel::VmcsField::VMCS_SYSENTER_CS,
-		static_cast<unsigned long>(::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_SYSENTER_CS)))
-	);
-
 	intel::Cr0 cr0_mask = { 0 };
 	intel::Cr0 cr0_shadow = { ::__readcr0() };
 
@@ -290,9 +288,6 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DR7, ::__readdr(7));
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_SYSENTER_ESP, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_SYSENTER_ESP)));
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_SYSENTER_EIP, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_SYSENTER_EIP)));
-
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_CR0, ::__readcr0());
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_CR3, host_cr3);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_CR4, ::__readcr4());
@@ -305,8 +300,8 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_GDTR_BASE, gdtr.base);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_IDTR_BASE, idtr.base);
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_SYSENTER_ESP, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_SYSENTER_ESP)));
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_SYSENTER_EIP, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_SYSENTER_EIP)));
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_EFER, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_EFER)));
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_EFER, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_EFER)));
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RSP, reinterpret_cast<unsigned long long>(vcpu_context->stack + sizeof(loader::VcpuContext) - 8));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RIP, reinterpret_cast<unsigned long long>(_restore_guest));
@@ -314,6 +309,11 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_RSP, reinterpret_cast<unsigned long long>(vcpu_context->stack + sizeof(loader::VcpuContext) - 8));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_RIP, reinterpret_cast<unsigned long long>(_vmexit_handler));
+
+	if (!success)
+	{
+		return nullptr;
+	}
 
 	return virtual_vmcs_region;
 }

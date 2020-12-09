@@ -175,8 +175,19 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 	KdPrint(("[*] exit reason: %d\n", exit_reason & 0xffff));
 	KdPrint(("[*] exit qualification: 0x%p\n", exit_qualification));
 
+	auto [success_3, guest_rip] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RIP);
+	auto [success_4, guest_rsp] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RSP);
+
+	KdPrint(("[*] guest rip: 0x%p\n", guest_rip));
+	KdPrint(("[*] guest rsp: 0x%p\n", guest_rsp));
+
 	switch (exit_reason & 0xffff)
 	{
+	case 2: {
+		::__debugbreak();
+		break;
+	}
+
 	case 10: {
 		intel::GeneralCpuidInfo cpuid_info = { 0 };
 
@@ -229,13 +240,12 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 
 		break;
 	}
+
+	case 33: {
+		KdPrint(("[-] fuckkkk\n"));
+		::KeBugCheck(0x0000013D);
 	}
-
-	auto [success_3, guest_rip] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RIP);
-	auto [success_4, guest_rsp] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RSP);
-
-	KdPrint(("[*] guest rip: 0x%p\n", guest_rip));
-	KdPrint(("[*] guest rsp: 0x%p\n", guest_rsp));
+	}
 	
 	auto [success_5, instruction_length] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_VMEXIT_INSTRUCTION_LENGTH);
 

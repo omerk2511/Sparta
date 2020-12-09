@@ -26,6 +26,7 @@ namespace intel
         IA32_VMX_TRUE_PROCBASED_CTLS = 0x48e,
         IA32_VMX_TRUE_EXIT_CTLS = 0x48f,
         IA32_VMX_TRUE_ENTRY_CTLS = 0x490,
+        IA32_EFER = 0xc0000080,
         IA32_FS_BASE = 0xc0000100,
         IA32_GS_BASE = 0xc0000101
     };
