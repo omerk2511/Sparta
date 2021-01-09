@@ -130,8 +130,6 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 		return nullptr;
 	}
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_VIRTUAL_PROCESSOR_IDENTIFIER, static_cast<unsigned short>(vcpu_context->processor_index + 1));
-
 	auto segment_selectors = asm_helpers::get_segment_selectors();
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_SELECTOR, segment_selectors.cs);
@@ -151,6 +149,7 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_GS_SELECTOR, static_cast<unsigned short>(segment_selectors.gs & ZERO_RPL_MASK));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_TR_SELECTOR, static_cast<unsigned short>(segment_selectors.tr & ZERO_RPL_MASK));
 
+	// success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_VIRTUAL_PROCESSOR_IDENTIFIER, static_cast<unsigned short>(vcpu_context->processor_index + 1));
 	// success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_EPT_POINTER, 0ull); // use a real ept
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_VMCS_LINK_POINTER, VMCS_LINK_POINTER_NOT_USED);
@@ -244,48 +243,32 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 	intel::Idtr idtr = { 0 };
 	::__sidt(&idtr);
 
+	::__debugbreak();
+
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GDTR_LIMIT, static_cast<unsigned long>(gdtr.limit));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_IDTR_LIMIT, static_cast<unsigned long>(idtr.limit));
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_ES_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.es).raw);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.cs).raw);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_SS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.ss).raw);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.ds).raw);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_FS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.fs).raw);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.gs).raw);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_LDTR_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.ldtr).raw);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_TR_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.tr).raw);
-
-	intel::Cr0 cr0_mask = { 0 };
-	intel::Cr0 cr0_shadow = { ::__readcr0() };
-
-	intel::Cr4 cr4_mask = { 0 };
-	intel::Cr4 cr4_shadow = { ::__readcr4() };
-
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_CR0_GUEST_HOST_MASK, cr0_mask.raw);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_CR0_READ_SHADOW, cr0_shadow.raw);
-
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_CR4_GUEST_HOST_MASK, cr4_mask.raw);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_CR4_READ_SHADOW, cr4_shadow.raw);
-
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CR0, ::__readcr0());
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_CR0_READ_SHADOW, ::__readcr0());
+
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CR3, ::__readcr3());
+
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CR4, ::__readcr4());
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_CR4_READ_SHADOW, ::__readcr4());
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_ES_BASE, 0ull); // potential issues
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_BASE, 0ull);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_SS_BASE, 0ull);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DS_BASE, 0ull);
-
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_ES_BASE, 0ull); // intel::get_system_segment_base(segment_selectors.es, gdtr.base));
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_BASE, 0ull); // intel::get_system_segment_base(segment_selectors.cs, gdtr.base));
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_SS_BASE, 0ull); // intel::get_system_segment_base(segment_selectors.ss, gdtr.base));
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DS_BASE, 0ull); // intel::get_system_segment_base(segment_selectors.ds, gdtr.base));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_FS_BASE, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_FS_BASE)));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GS_BASE, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_GS_BASE)));
-
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_LDTR_BASE, intel::get_system_segment_base(segment_selectors.ldtr, gdtr.base));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_TR_BASE, intel::get_system_segment_base(segment_selectors.tr, gdtr.base));
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GDTR_BASE, gdtr.base);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_IDTR_BASE, idtr.base);
 
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DEBUGCTL, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_DEBUGCTL)));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DR7, ::__readdr(7));
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_CR0, ::__readcr0());
@@ -299,9 +282,6 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_GDTR_BASE, gdtr.base);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_IDTR_BASE, idtr.base);
-
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_EFER, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_EFER)));
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_EFER, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_EFER)));
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RSP, reinterpret_cast<unsigned long long>(vcpu_context->stack + sizeof(loader::VcpuContext) - 8));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RIP, reinterpret_cast<unsigned long long>(_restore_guest));

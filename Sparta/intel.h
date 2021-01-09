@@ -1,5 +1,6 @@
 #pragma once
 #pragma warning(disable: 4201)
+#pragma pack(push, 1)
 
 extern "C" void _sgdt(void*);
 
@@ -62,7 +63,6 @@ namespace intel
         };
     };
 
-#pragma pack(push, 1)
     union Ia32VmxControlsHint
     {
         unsigned long long raw;
@@ -73,7 +73,6 @@ namespace intel
             unsigned long allowed_1_settings;
         };
     };
-#pragma pack(pop)
 
     enum class CpuidType
     {
@@ -260,24 +259,21 @@ namespace intel
             unsigned long long limit_1 : 4;
             unsigned long long attr_1 : 4;
             unsigned long long base_1 : 40;
+            unsigned long long : 32;
         };
     };
 
-#pragma pack(push, 1)
     struct Gdtr
     {
         unsigned short limit;
         unsigned long long base;
     };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
     struct Idtr
     {
         unsigned short limit;
         unsigned long long base;
     };
-#pragma pack(pop)
 
     union SegmentAccessRights
     {
@@ -630,6 +626,7 @@ namespace intel
         };
     };
 
-    unsigned long long get_system_segment_base(unsigned short segment_selector, unsigned long long gdt_base);
-    intel::SegmentAccessRights get_segment_access_rights(unsigned long selector);
+    auto get_system_segment_base(unsigned short segment_selector, unsigned long long gdt_base) -> unsigned long long;
 }
+
+#pragma pack(pop)

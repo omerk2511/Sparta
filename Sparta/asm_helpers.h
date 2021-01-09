@@ -2,18 +2,18 @@
 
 extern "C"
 {
-	unsigned short _get_es_selector();
-	unsigned short _get_cs_selector();
-	unsigned short _get_ss_selector();
-	unsigned short _get_ds_selector();
-	unsigned short _get_fs_selector();
-	unsigned short _get_gs_selector();
-	unsigned short _get_ldtr_selector();
-	unsigned short _get_tr_selector();
+	auto _get_es_selector() -> unsigned short;
+	auto _get_cs_selector() -> unsigned short;
+	auto _get_ss_selector() -> unsigned short;
+	auto _get_ds_selector() -> unsigned short;
+	auto _get_fs_selector() -> unsigned short;
+	auto _get_gs_selector() -> unsigned short;
+	auto _get_ldtr_selector() -> unsigned short;
+	auto _get_tr_selector() -> unsigned short;
 
-	unsigned long _get_segment_access_rights(unsigned long selector);
+	auto _get_segment_access_rights(unsigned long selector) -> unsigned long;
 
-	void* _get_rsp();
+	auto _get_rsp() -> void*;
 
 	void _vmexit_handler();
 	void _restore_guest();
@@ -52,7 +52,7 @@ namespace asm_helpers
 		};
 	};
 
-	inline SegmentSelectors get_segment_selectors()
+	inline auto get_segment_selectors() -> SegmentSelectors
 	{
 		return {
 			_get_es_selector(),
@@ -66,14 +66,14 @@ namespace asm_helpers
 		};
 	}
 
-	inline SegmentAccessRights get_segment_access_rights(unsigned long selector)
+	inline auto get_segment_access_rights(unsigned long selector) -> SegmentAccessRights
 	{
 		SegmentAccessRights segment_access_rights = { _get_segment_access_rights(selector) };
 		segment_access_rights.undefined = 0;
 		return segment_access_rights;
 	}
 
-	inline void* get_rsp()
+	inline auto get_rsp() -> void*
 	{
 		return _get_rsp();
 	}

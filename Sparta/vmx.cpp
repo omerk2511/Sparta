@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "asm_helpers.h"
 #include "multiprocessing.h"
+#include "logging.h"
 
 void vmx::enable_vmx()
 {
@@ -98,6 +99,7 @@ void* vmx::vmxon()
 
 bool vmx::vmlaunch()
 {
+	logging::dump_vmcs_guest_state_area();
 	::__vmx_vmlaunch();
 	return false; // not really
 }
