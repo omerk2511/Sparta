@@ -19,3 +19,19 @@ auto intel::get_system_segment_base(unsigned short segment_selector, unsigned lo
 
 	return (descriptor->base_0 | (descriptor->base_1 << 24));
 }
+
+auto intel::get_segment_access_rights(unsigned short segment_selector) -> SegmentAccessRights
+{
+	intel::SegmentAccessRights access_rights = { 0 };
+
+	if (segment_selector)
+	{
+		access_rights.raw = asm_helpers::get_segment_access_rights(segment_selector).raw >> 8;
+	}
+	else
+	{
+		access_rights.segment_unusable = 1;
+	}
+
+	return access_rights;
+}

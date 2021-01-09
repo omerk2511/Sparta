@@ -627,6 +627,7 @@ namespace intel
     };
 
     auto get_system_segment_base(unsigned short segment_selector, unsigned long long gdt_base) -> unsigned long long;
+    auto get_segment_access_rights(unsigned short segment_selector) -> SegmentAccessRights;
 }
 
 #pragma pack(pop)

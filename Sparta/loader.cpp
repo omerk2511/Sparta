@@ -246,6 +246,15 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GDTR_LIMIT, static_cast<unsigned long>(gdtr.limit));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_IDTR_LIMIT, static_cast<unsigned long>(idtr.limit));
 
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_ES_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.es).raw);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.cs).raw);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_SS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.ss).raw);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.ds).raw);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_FS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.fs).raw);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GS_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.gs).raw);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_LDTR_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.ldtr).raw);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_TR_ACCESS_RIGHTS, intel::get_segment_access_rights(segment_selectors.tr).raw);
+
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CR0, ::__readcr0());
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_CR0_READ_SHADOW, ::__readcr0());
 
