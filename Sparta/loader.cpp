@@ -200,7 +200,7 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 
 	intel::VmEntryControls vm_entry_controls = { 0 };
 
-	vm_entry_controls.ia32e_mode_guest = 1;
+	vm_entry_controls.ia32e_mode_guest = true;
 
 	vmx::adjust_vmx_controls(
 		vm_entry_controls.raw,
@@ -242,8 +242,6 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 
 	intel::Idtr idtr = { 0 };
 	::__sidt(&idtr);
-
-	::__debugbreak();
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GDTR_LIMIT, static_cast<unsigned long>(gdtr.limit));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_IDTR_LIMIT, static_cast<unsigned long>(idtr.limit));
