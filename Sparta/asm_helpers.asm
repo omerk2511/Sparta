@@ -68,12 +68,13 @@ _vmexit_handler PROC
 	push rdx
 	push rcx
 	push rax
+	push rsp
 
 	mov rcx, rsp
 
 	sub rsp, 28h
 	call vmexit_handler
-	add rsp, 28h
+	add rsp, 30h
 
 	pop rax
 	pop rcx
@@ -99,16 +100,56 @@ _vmresume PROC
 	vmresume
 _vmresume ENDP
 
-_end_initialize_vmx PROC
+_restore_guest PROC
 	cli
+	nop ; can be replaced with int3
 
-	mov rax, 0
-	mov cr3, rax
+	mov rcx, rsp
+	sub rcx, 7ff8h
 
-cpuid_loop:
-	mov eax, 0
-	cpuid
-	jmp cpuid_loop
-_end_initialize_vmx ENDP
+	movaps  xmm0, [rcx+1a0h]
+    movaps  xmm1, [rcx+1b0h]
+    movaps  xmm2, [rcx+1c0h]
+    movaps  xmm3, [rcx+1d0h]
+    movaps  xmm4, [rcx+1e0h]
+    movaps  xmm5, [rcx+1f0h]
+    movaps  xmm6, [rcx+200h]
+    movaps  xmm7, [rcx+210h]
+    movaps  xmm8, [rcx+220h]
+    movaps  xmm9, [rcx+230h]
+    movaps  xmm10, [rcx+240h]
+    movaps  xmm11, [rcx+250h]
+    movaps  xmm12, [rcx+260h]
+    movaps  xmm13, [rcx+270h]
+    movaps  xmm14, [rcx+280h]
+    movaps  xmm15, [rcx+290h]
+    ldmxcsr [rcx+34h]
+
+    mov rax, [rcx+78h]
+    mov rdx, [rcx+88h]
+    mov r8, [rcx+0b8h]
+    mov r9, [rcx+0c0h]
+    mov r10, [rcx+0c8h]
+    mov r11, [rcx+0d0h]
+
+    mov rbx, [rcx+90h]
+    mov rsi, [rcx+0a8h]
+    mov rdi, [rcx+0b0h]
+    mov rbp, [rcx+0a0h]
+    mov r12, [rcx+0d8h]
+    mov r13, [rcx+0e0h]
+    mov r14, [rcx+0e8h]
+    mov r15, [rcx+0f0h]
+
+    push [rcx+44h]
+    popfq
+    mov rsp, [rcx+98h]
+    push [rcx+0f8h]
+    mov rcx, [rcx+80h]
+
+	sti
+
+    ret
+_restore_guest ENDP
 
 END

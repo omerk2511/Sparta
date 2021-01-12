@@ -1,5 +1,8 @@
 #pragma once
 #pragma warning(disable: 4201)
+#pragma pack(push, 1)
+
+extern "C" void _sgdt(void*);
 
 namespace intel
 {
@@ -24,6 +27,7 @@ namespace intel
         IA32_VMX_TRUE_PROCBASED_CTLS = 0x48e,
         IA32_VMX_TRUE_EXIT_CTLS = 0x48f,
         IA32_VMX_TRUE_ENTRY_CTLS = 0x490,
+        IA32_EFER = 0xc0000080,
         IA32_FS_BASE = 0xc0000100,
         IA32_GS_BASE = 0xc0000101
     };
@@ -59,7 +63,6 @@ namespace intel
         };
     };
 
-#pragma pack(push, 1)
     union Ia32VmxControlsHint
     {
         unsigned long long raw;
@@ -70,7 +73,6 @@ namespace intel
             unsigned long allowed_1_settings;
         };
     };
-#pragma pack(pop)
 
     enum class CpuidType
     {
@@ -257,26 +259,23 @@ namespace intel
             unsigned long long limit_1 : 4;
             unsigned long long attr_1 : 4;
             unsigned long long base_1 : 40;
+            unsigned long long : 32;
         };
     };
 
-#pragma pack(push, 1)
     struct Gdtr
     {
         unsigned short limit;
         unsigned long long base;
     };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
     struct Idtr
     {
         unsigned short limit;
         unsigned long long base;
     };
-#pragma pack(pop)
 
-    union VmxSegmentAccessRights
+    union SegmentAccessRights
     {
         unsigned long raw;
 
@@ -626,4 +625,9 @@ namespace intel
             unsigned long long lmsw_source_data : 16;
         };
     };
+
+    auto get_system_segment_base(unsigned short segment_selector, unsigned long long gdt_base) -> unsigned long long;
+    auto get_segment_access_rights(unsigned short segment_selector) -> SegmentAccessRights;
 }
+
+#pragma pack(pop)
