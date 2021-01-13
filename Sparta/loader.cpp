@@ -113,20 +113,20 @@ void setup_ept(loader::VcpuContext* vcpu_context)
 		vcpu_context->pdpt[i].write = true;
 		vcpu_context->pdpt[i].supervisor_mode_execute = true;
 		vcpu_context->pdpt[i].user_mode_execute = true;
-		vcpu_context->pdpt[i].pfn = ::MmGetPhysicalAddress(&vcpu_context->pde[i]).QuadPart >> 12;
+		vcpu_context->pdpt[i].pfn = ::MmGetPhysicalAddress(&vcpu_context->pd[i]).QuadPart >> 12;
 	}
 
 	for (auto i = 0; i < intel::EPT_ENTRY_COUNT; i++)
 	{
 		for (auto j = 0; j < intel::EPT_ENTRY_COUNT; j++)
 		{
-			vcpu_context->pde[i][j].read = true;
-			vcpu_context->pde[i][j].write = true;
-			vcpu_context->pde[i][j].supervisor_mode_execute = true;
-			vcpu_context->pde[i][j].user_mode_execute = true;
-			vcpu_context->pde[i][j].must_be_1 = 1;
-			vcpu_context->pde[i][j].type = static_cast<unsigned long long>(intel::MtrrType::WB); // fix - poll mtrr msrs
-			vcpu_context->pde[i][j].pfn = i * intel::EPT_ENTRY_COUNT + j;
+			vcpu_context->pd[i][j].read = true;
+			vcpu_context->pd[i][j].write = true;
+			vcpu_context->pd[i][j].supervisor_mode_execute = true;
+			vcpu_context->pd[i][j].user_mode_execute = true;
+			vcpu_context->pd[i][j].must_be_1 = 1;
+			vcpu_context->pd[i][j].type = static_cast<unsigned long long>(intel::MtrrType::WB); // fix - poll mtrr msrs
+			vcpu_context->pd[i][j].pfn = i * intel::EPT_ENTRY_COUNT + j;
 		}
 	}
 }

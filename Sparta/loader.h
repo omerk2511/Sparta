@@ -24,7 +24,7 @@ namespace loader
 
 		intel::EptPml4e pml4[intel::EPT_ENTRY_COUNT];
 		intel::EptPdpte pdpt[intel::EPT_ENTRY_COUNT];
-		intel::EptLargePde pde[intel::EPT_ENTRY_COUNT][intel::EPT_ENTRY_COUNT];
+		intel::EptLargePde pd[intel::EPT_ENTRY_COUNT][intel::EPT_ENTRY_COUNT];
 
 		void* vmxon_region;
 		void* vmcs_region;
