@@ -2,6 +2,6 @@
 
 namespace validation
 {
-	bool is_os_supported();
-	bool is_vmx_supported();
+	auto is_os_supported() -> bool;
+	auto is_vmx_supported() -> bool;
 }

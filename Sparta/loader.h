@@ -3,6 +3,8 @@
 
 #include <ntifs.h>
 
+#include "intel.h"
+
 namespace loader
 {
 	struct SpartaContext
@@ -12,18 +14,22 @@ namespace loader
 
 	constexpr size_t STACK_LIMIT = 0x8000;
 
-	union VcpuContext
+	struct VcpuContext
 	{
-		struct
+		union
 		{
 			CONTEXT guest_context;
-			void* vmxon_region;
-			void* vmcs_region;
-			unsigned long processor_index;
+			unsigned char stack[STACK_LIMIT];
 		};
+		
+		void* vmxon_region;
+		void* vmcs_region;
+		unsigned long processor_index;
 
-		unsigned char stack[STACK_LIMIT];
+		intel::EptPml4e pml4[intel::EPT_ENTRY_COUNT];
+		intel::EptPdpte pdpt[intel::EPT_ENTRY_COUNT];
+		intel::EptLargePde pde[intel::EPT_ENTRY_COUNT][intel::EPT_ENTRY_COUNT];
 	};
 
-	bool load_sparta(SpartaContext* sparta_context);
+	auto load_sparta(SpartaContext* sparta_context) -> bool;
 }

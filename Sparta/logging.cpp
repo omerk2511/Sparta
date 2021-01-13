@@ -1,5 +1,6 @@
 #include "logging.h"
 #include "vmx.h"
+#include "asm_helpers.h"
 
 #include <ntddk.h>
 
@@ -71,4 +72,14 @@ void logging::dump_vmcs_guest_state_area()
 	KdPrint(("VMCS_GUEST_PENDING_DEBUG_EXCEPTIONS: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_PENDING_DEBUG_EXCEPTIONS).value));
 	KdPrint(("VMCS_GUEST_SYSENTER_ESP: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_SYSENTER_ESP).value));
 	KdPrint(("VMCS_GUEST_SYSENTER_EIP: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_SYSENTER_EIP).value));
+}
+
+void logging::dump_syscall_check()
+{
+	KdPrint(("Guest-level SYSCALL check:\n"));
+
+	KdPrint(("CS = 0x%hx\n", asm_helpers::get_segment_selectors().cs));
+	KdPrint(("IA32_EFER = 0x%llx\n", ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_EFER))));
+	KdPrint(("IA32_STAR = 0x%llx\n", ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_STAR))));
+	KdPrint(("IA32_LSTAR = 0x%llx\n", ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_LSTAR))));
 }

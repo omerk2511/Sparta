@@ -2,7 +2,7 @@
 
 #include <ntddk.h>
 
-void* operator new(size_t size, POOL_TYPE pool_type, ULONG tag)
+auto operator new(size_t size, POOL_TYPE pool_type, ULONG tag) -> void*
 {
     return ::ExAllocatePoolWithTag(
         pool_type,
@@ -11,7 +11,7 @@ void* operator new(size_t size, POOL_TYPE pool_type, ULONG tag)
     );
 }
 
-void* operator new[](size_t size, POOL_TYPE pool_type, ULONG tag)
+auto operator new[](size_t size, POOL_TYPE pool_type, ULONG tag) -> void*
 {
     return ::ExAllocatePoolWithTag(
         pool_type,
