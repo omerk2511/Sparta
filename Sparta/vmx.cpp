@@ -245,6 +245,13 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 		KdPrint(("[-] fuckkkk\n"));
 		::KeBugCheck(0x0000013D);
 	}
+
+	case 48: {
+		KdPrint(("[*] guest physical address: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_PHYSICAL_ADDRESS)));
+		::__debugbreak();
+
+		break;
+	}
 	}
 	
 	auto [success_5, instruction_length] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_VMEXIT_INSTRUCTION_LENGTH);

@@ -21,14 +21,14 @@ namespace loader
 			CONTEXT guest_context;
 			unsigned char stack[STACK_LIMIT];
 		};
-		
-		void* vmxon_region;
-		void* vmcs_region;
-		unsigned long processor_index;
 
 		intel::EptPml4e pml4[intel::EPT_ENTRY_COUNT];
 		intel::EptPdpte pdpt[intel::EPT_ENTRY_COUNT];
 		intel::EptLargePde pde[intel::EPT_ENTRY_COUNT][intel::EPT_ENTRY_COUNT];
+
+		void* vmxon_region;
+		void* vmcs_region;
+		unsigned long processor_index;
 	};
 
 	auto load_sparta(SpartaContext* sparta_context) -> bool;

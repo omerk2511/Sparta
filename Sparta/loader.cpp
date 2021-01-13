@@ -125,7 +125,7 @@ void setup_ept(loader::VcpuContext* vcpu_context)
 			vcpu_context->pde[i][j].supervisor_mode_execute = true;
 			vcpu_context->pde[i][j].user_mode_execute = true;
 			vcpu_context->pde[i][j].must_be_1 = 1;
-			vcpu_context->pde[i][j].type = 0; // fix - poll mtrr msrs
+			vcpu_context->pde[i][j].type = static_cast<unsigned long long>(intel::MtrrType::WB); // fix - poll mtrr msrs
 			vcpu_context->pde[i][j].pfn = i * intel::EPT_ENTRY_COUNT + j;
 		}
 	}
@@ -337,7 +337,7 @@ static void setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long hos
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_GDTR_BASE, gdtr.base);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_IDTR_BASE, idtr.base);
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RSP, reinterpret_cast<unsigned long long>(vcpu_context->stack + sizeof(loader::VcpuContext) - 8));
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RSP, reinterpret_cast<unsigned long long>(vcpu_context->stack + loader::STACK_LIMIT - 8));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RIP, reinterpret_cast<unsigned long long>(_restore_guest));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RFLAGS, ::__readeflags());
 
