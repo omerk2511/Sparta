@@ -9,10 +9,12 @@ namespace intel
     enum class Msr : unsigned long
     {
         IA32_FEATURE_CONTROL = 0x3a,
+        IA32_MTRRCAP = 0xfe,
         IA32_SYSENTER_CS = 0x174,
         IA32_SYSENTER_ESP = 0x175,
         IA32_SYSENTER_EIP = 0x176,
         IA32_DEBUGCTL = 0x1d9,
+        IA32_MTRR_DEF_TYPE = 0x2ff,
         IA32_VMX_BASIC = 0x480,
         IA32_VMX_PINBASED_CTLS = 0x481,
         IA32_VMX_PROCBASED_CTLS = 0x482,
@@ -756,6 +758,33 @@ namespace intel
         WT = 4,
         WP = 5,
         WB = 6
+    };
+
+    union Ia32MtrrCap
+    {
+        unsigned long long raw;
+        
+        struct
+        {
+            unsigned long long vcnt : 8;
+            unsigned long long fix : 1;
+            unsigned long long : 1;
+            unsigned long long wc : 1;
+            unsigned long long smrr : 1;
+        };
+    };
+
+    union Ia32MtrrDefType
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long type : 8;
+            unsigned long long : 2;
+            unsigned long long fe : 10;
+            unsigned long long e : 11;
+        };
     };
 
     auto get_system_segment_base(unsigned short segment_selector, unsigned long long gdt_base) -> unsigned long long;
