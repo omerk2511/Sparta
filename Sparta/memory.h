@@ -4,8 +4,8 @@
 
 #include "kstd.h"
 
-void* operator new(size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0);
-void* operator new[](size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0);
+auto operator new(size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0) -> void*;
+auto operator new[](size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0) -> void*;
 
 void operator delete(void* address);
 void operator delete[](void* address);
@@ -58,7 +58,7 @@ namespace kstd
 		}
 
 		UniquePointer(const UniquePointer&) = delete;
-		UniquePointer& operator=(const UniquePointer&) = delete;
+		auto operator=(const UniquePointer&) -> UniquePointer& = delete;
 
 		UniquePointer(UniquePointer&& other)
 			: _ptr{ other._ptr }
@@ -66,7 +66,7 @@ namespace kstd
 			other._ptr = nullptr;
 		}
 
-		UniquePointer& operator=(UniquePointer&& other)
+		auto operator=(UniquePointer&& other) -> UniquePointer&
 		{
 			if (this != &other)
 			{
@@ -82,10 +82,10 @@ namespace kstd
 			return *this;
 		}
 
-		_T* get() { return _ptr; }
-		const _T* get() const { return _ptr; }
+		[[nodiscard]] auto get() -> _T* { return _ptr; }
+		[[nodiscard]] auto get() const -> const _T* { return _ptr; }
 
-		_T* release()
+		auto release() -> _T*
 		{
 			auto temp = _ptr;
 			_ptr = nullptr;
@@ -110,14 +110,14 @@ namespace kstd
 			other._ptr = temp;
 		}
 
-		_T& operator*() { return *_ptr; }
-		const _T& operator*() const { return *_ptr; }
+		auto operator*() -> _T& { return *_ptr; }
+		auto operator*() const -> const _T& { return *_ptr; }
 
-		_T* operator->() { return _ptr; }
-		const _T* operator->() const { return _ptr; }
+		auto operator->() -> _T* { return _ptr; }
+		auto operator->() const -> const _T* { return _ptr; }
 
-		_T& operator[](int index) { return _ptr[index]; };
-		const _T& operator[](int index) const { return _ptr[index]; };
+		auto operator[](int index) -> _T& { return _ptr[index]; };
+		auto operator[](int index) const -> const _T& { return _ptr[index]; };
 
 		explicit operator bool() const { return _ptr; }
 

@@ -9,7 +9,7 @@
 
 void unload_routine(PDRIVER_OBJECT driver_object);
 
-extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING registry_path)
+extern "C" auto DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING registry_path) -> NTSTATUS
 {
 	UNREFERENCED_PARAMETER(registry_path);
 

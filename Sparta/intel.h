@@ -9,10 +9,12 @@ namespace intel
     enum class Msr : unsigned long
     {
         IA32_FEATURE_CONTROL = 0x3a,
+        IA32_MTRRCAP = 0xfe,
         IA32_SYSENTER_CS = 0x174,
         IA32_SYSENTER_ESP = 0x175,
         IA32_SYSENTER_EIP = 0x176,
         IA32_DEBUGCTL = 0x1d9,
+        IA32_MTRR_DEF_TYPE = 0x2ff,
         IA32_VMX_BASIC = 0x480,
         IA32_VMX_PINBASED_CTLS = 0x481,
         IA32_VMX_PROCBASED_CTLS = 0x482,
@@ -29,7 +31,10 @@ namespace intel
         IA32_VMX_TRUE_ENTRY_CTLS = 0x490,
         IA32_EFER = 0xc0000080,
         IA32_FS_BASE = 0xc0000100,
-        IA32_GS_BASE = 0xc0000101
+        IA32_GS_BASE = 0xc0000101,
+        IA32_STAR = 0xc0000081,
+        IA32_LSTAR = 0xc0000082,
+        IA32_CSTAR = 0xc0000083
     };
 
     union Ia32FeatureControl
@@ -623,6 +628,162 @@ namespace intel
             unsigned long long mov_cr_gp_register : 4;
             unsigned long long : 4;
             unsigned long long lmsw_source_data : 16;
+        };
+    };
+
+    union VmxEptp
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long type : 3;
+            unsigned long long page_walk_length : 3;
+            unsigned long long enable_accessed_dirty : 1;
+            unsigned long long enable_supervisor_shadow_stack : 1;
+            unsigned long long : 4;
+            unsigned long long pfn : 40;
+        };
+    };
+
+    union EptPml4e
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long read : 1;
+            unsigned long long write : 1;
+            unsigned long long supervisor_mode_execute : 1;
+            unsigned long long : 5;
+            unsigned long long accessed : 1;
+            unsigned long long : 1;
+            unsigned long long user_mode_execute : 1;
+            unsigned long long : 1;
+            unsigned long long pfn : 40;
+        };
+    };
+
+    union EptPdpte
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long read : 1;
+            unsigned long long write : 1;
+            unsigned long long supervisor_mode_execute : 1;
+            unsigned long long : 5;
+            unsigned long long accessed : 1;
+            unsigned long long : 1;
+            unsigned long long user_mode_execute : 1;
+            unsigned long long : 1;
+            unsigned long long pfn : 40;
+        };
+    };
+
+    union EptPde
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long read : 1;
+            unsigned long long write : 1;
+            unsigned long long supervisor_mode_execute : 1;
+            unsigned long long : 5;
+            unsigned long long accessed : 1;
+            unsigned long long : 1;
+            unsigned long long user_mode_execute : 1;
+            unsigned long long : 1;
+            unsigned long long pfn : 40;
+        };
+    };
+
+    union EptLargePde
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long read : 1;
+            unsigned long long write : 1;
+            unsigned long long supervisor_mode_execute : 1;
+            unsigned long long type : 3;
+            unsigned long long ignore_pat : 1;
+            unsigned long long must_be_1 : 1;
+            unsigned long long accessed : 1;
+            unsigned long long dirty : 1;
+            unsigned long long user_mode_execute : 1;
+            unsigned long long : 10;
+            unsigned long long pfn : 31;
+            unsigned long long : 8;
+            unsigned long long supervisor_shadow_stack : 1;
+            unsigned long long : 2;
+            unsigned long long suppress_ve : 1;
+        };
+    };
+
+    union EptPte
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long read : 1;
+            unsigned long long write : 1;
+            unsigned long long supervisor_mode_execute : 1;
+            unsigned long long type : 3;
+            unsigned long long ignore_pat : 1;
+            unsigned long long : 1;
+            unsigned long long accessed : 1;
+            unsigned long long dirty : 1;
+            unsigned long long user_mode_execute : 1;
+            unsigned long long : 1;
+            unsigned long long pfn : 40;
+            unsigned long long : 8;
+            unsigned long long supervisor_shadow_stack : 1;
+            unsigned long long sub_page_write_permissions : 1;
+            unsigned long long : 1;
+            unsigned long long suppress_ve : 1;
+        };
+    };
+
+    inline constexpr size_t EPT_ENTRY_COUNT = 512;
+
+    enum class MtrrType
+    {
+        UC = 0,
+        WC = 1,
+        WT = 4,
+        WP = 5,
+        WB = 6
+    };
+
+    union Ia32MtrrCap
+    {
+        unsigned long long raw;
+        
+        struct
+        {
+            unsigned long long vcnt : 8;
+            unsigned long long fix : 1;
+            unsigned long long : 1;
+            unsigned long long wc : 1;
+            unsigned long long smrr : 1;
+        };
+    };
+
+    union Ia32MtrrDefType
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long type : 8;
+            unsigned long long : 2;
+            unsigned long long fe : 10;
+            unsigned long long e : 11;
         };
     };
 

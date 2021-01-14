@@ -8,8 +8,8 @@
 
 namespace multiprocessing
 {
-	size_t get_processor_count();
-	size_t get_current_processor_id();
+	auto get_processor_count() -> size_t;
+	auto get_current_processor_id() -> size_t;
 
 	template<typename Ret>
 	struct CallbackResults
@@ -36,7 +36,7 @@ namespace multiprocessing
 	};
 
 	template<typename Ret, typename Arg>
-	ULONG_PTR GenericIpiHandler(ULONG_PTR context)
+	auto GenericIpiHandler(ULONG_PTR context) -> ULONG_PTR
 	{
 		auto ipi_context = reinterpret_cast<IpiContext<Ret, Arg>*>(context);
 

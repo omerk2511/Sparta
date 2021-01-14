@@ -4,7 +4,6 @@
 #include "memory.h"
 #include "asm_helpers.h"
 #include "multiprocessing.h"
-#include "logging.h"
 
 void vmx::enable_vmx()
 {
@@ -63,7 +62,7 @@ void vmx::enable_vmx()
 	KdPrint(("[+] successfully updated cr0 and cr4 based on the required bits\n"));
 }
 
-void* vmx::vmxon()
+auto vmx::vmxon() -> void*
 {
 	auto virtual_vmxon_region = reinterpret_cast<void*>(new (NonPagedPool) unsigned char[intel::VMXON_REGION_SIZE]);
 
@@ -97,20 +96,19 @@ void* vmx::vmxon()
 	return virtual_vmxon_region;
 }
 
-bool vmx::vmlaunch()
+auto vmx::vmlaunch() -> bool
 {
-	logging::dump_vmcs_guest_state_area();
 	::__vmx_vmlaunch();
 	return false; // not really
 }
 
-bool vmx::vmclear(unsigned long long* vmcs)
+auto vmx::vmclear(unsigned long long* vmcs) -> bool
 {
 	auto ret = ::__vmx_vmclear(vmcs);
 	return ret == STATUS_SUCCESS;
 }
 
-bool vmx::vmptrld(unsigned long long* vmcs)
+auto vmx::vmptrld(unsigned long long* vmcs) -> bool
 {
 	auto ret = ::__vmx_vmptrld(vmcs);
 	return ret == STATUS_SUCCESS;
@@ -144,7 +142,7 @@ struct GuestState
 };
 #pragma pack(pop)
 
-static unsigned long long select_register(GuestState* guest_state, unsigned long long register_number)
+static auto select_register(GuestState* guest_state, unsigned long long register_number) -> unsigned long long
 {
 	switch (register_number)
 	{
@@ -246,6 +244,13 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 	case 33: {
 		KdPrint(("[-] fuckkkk\n"));
 		::KeBugCheck(0x0000013D);
+	}
+
+	case 48: {
+		KdPrint(("[*] guest physical address: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_PHYSICAL_ADDRESS)));
+		::__debugbreak();
+
+		break;
 	}
 	}
 	

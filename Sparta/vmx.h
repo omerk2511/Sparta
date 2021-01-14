@@ -9,10 +9,10 @@
 namespace vmx
 {
 	void enable_vmx();
-	void* vmxon();
-	bool vmlaunch();
-	bool vmclear(unsigned long long* vmcs);
-	bool vmptrld(unsigned long long* vmcs);
+	auto vmxon() -> void*;
+	auto vmlaunch() -> bool;
+	auto vmclear(unsigned long long* vmcs) -> bool;
+	auto vmptrld(unsigned long long* vmcs) -> bool;
 
 	void adjust_vmx_controls(unsigned long& vmx_controls, intel::Ia32VmxControlsHint hint);
 
@@ -25,7 +25,7 @@ namespace vmx
 	};
 
 	template<typename T>
-	static inline constexpr VmreadResult<T> vmread(intel::VmcsField vmcs_field)
+	static inline constexpr auto vmread(intel::VmcsField vmcs_field) -> VmreadResult<T>
 		requires kstd::is_unsigned_integer<T>
 	{
 		size_t value{ };
@@ -34,7 +34,7 @@ namespace vmx
 	}
 
 	template<typename T>
-	static inline constexpr bool vmwrite(intel::VmcsField vmcs_field, T value)
+	static inline constexpr auto vmwrite(intel::VmcsField vmcs_field, T value) -> bool
 		requires kstd::is_unsigned_integer<T>
 	{
 		auto ret = ::__vmx_vmwrite(static_cast<size_t>(vmcs_field), static_cast<size_t>(value));

@@ -2,25 +2,28 @@
 #include "multiprocessing.h"
 #include "vmx.h"
 #include "asm_helpers.h"
+#include "logging.h"
 
-static loader::VcpuContext* allocate_vcpu_context();
-static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long host_cr3);
+static auto allocate_vcpu_context() -> loader::VcpuContext*;
 
-static bool is_hypervisor_present()
+static void setup_ept(loader::VcpuContext* vcpu_context);
+static void setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long host_cr3);
+
+static auto is_hypervisor_present() -> bool
 {
 	intel::GeneralCpuidInfo cpuid_info = { 0 };
 	::__cpuid(reinterpret_cast<int*>(&cpuid_info), 0);
 	return (cpuid_info.ebx == 0x72617053);
 }
 
-bool loader::load_sparta(SpartaContext* sparta_context)
+auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 {
 	auto processor_index = static_cast<unsigned long>(multiprocessing::get_current_processor_id());
 	KdPrint(("[*] loading sparta on processor %ul\n", processor_index));
 
 	auto vcpu_context = allocate_vcpu_context();
 
-	if (!vcpu_context)
+	if (vcpu_context == nullptr)
 	{
 		KdPrint(("[-] could not allocate a vcpu context in processor %ul\n", processor_index));
 		return false;
@@ -29,26 +32,27 @@ bool loader::load_sparta(SpartaContext* sparta_context)
 
 	vcpu_context->processor_index = processor_index;
 
-    vmx::enable_vmx();
-    KdPrint(("[+] enabled vmx operation successfully\n"));
+	vmx::enable_vmx();
+	KdPrint(("[+] enabled vmx operation successfully\n"));
 
-    vcpu_context->vmxon_region = vmx::vmxon();
+	vcpu_context->vmxon_region = vmx::vmxon();
 
-    if (!vcpu_context->vmxon_region)
-    {
-        KdPrint(("[-] failed initializing vmx in processor %ul\n", processor_index));
-        return false;
-    }
-    KdPrint(("[+] entered vmx root mode successfully in processor %ul\n", processor_index));
+	if (!vcpu_context->vmxon_region)
+	{
+		KdPrint(("[-] failed initializing vmx in processor %ul\n", processor_index));
+		return false;
+	}
+	KdPrint(("[+] entered vmx root mode successfully in processor %ul\n", processor_index));
 
-	vcpu_context->vmcs_region = setup_vmcs(vcpu_context, sparta_context->host_cr3);
+	setup_ept(vcpu_context);
+	setup_vmcs(vcpu_context, sparta_context->host_cr3);
 
-    if (!vcpu_context->vmcs_region)
-    {
-        KdPrint(("[-] failed initializing the vmcs in processor %ul\n", processor_index));
-        return false;
-    }
-    KdPrint(("[+] successfully initialized the vmcs in processor %ul\n", processor_index));
+	if (!vcpu_context->vmcs_region)
+	{
+		KdPrint(("[-] failed initializing the vmcs in processor %ul\n", processor_index));
+		return false;
+	}
+	KdPrint(("[+] successfully initialized the vmcs in processor %ul\n", processor_index));
 
 	auto success = true;
 	::RtlCaptureContext(&vcpu_context->guest_context);
@@ -66,20 +70,23 @@ bool loader::load_sparta(SpartaContext* sparta_context)
 	}
 	::KeLowerIrql(old_irql);
 
-    if (!success)
-    {
-        KdPrint(("[-] failed initializing vmx in processor %ul\n", processor_index));
-        return false;
-    }
-    KdPrint(("[+] successfully initialized vmx in processor %ul\n", processor_index));
+	if (!success)
+	{
+		KdPrint(("[-] failed initializing vmx in processor %ul\n", processor_index));
+		return false;
+	}
+	KdPrint(("[+] successfully initialized vmx in processor %ul\n", processor_index));
 
-    return true;
+	// log some MSRs to check syscall stuff
+	logging::dump_syscall_check();
+
+	return true;
 }
 
 constexpr unsigned short ZERO_RPL_MASK = 0xfc;
-constexpr unsigned long long VMCS_LINK_POINTER_NOT_USED = ~0ull;
+constexpr unsigned long long VMCS_LINK_POINTER_NOT_USED = ~0ULL;
 
-loader::VcpuContext* allocate_vcpu_context()
+auto allocate_vcpu_context() -> loader::VcpuContext*
 {
 	auto vcpu_context = new (NonPagedPool) loader::VcpuContext;
 	if (!vcpu_context)
@@ -92,14 +99,46 @@ loader::VcpuContext* allocate_vcpu_context()
 	return vcpu_context;
 }
 
-static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long host_cr3)
+void setup_ept(loader::VcpuContext* vcpu_context)
+{
+	vcpu_context->pml4[0].read = true;
+	vcpu_context->pml4[0].write = true;
+	vcpu_context->pml4[0].supervisor_mode_execute = true;
+	vcpu_context->pml4[0].user_mode_execute = true;
+	vcpu_context->pml4[0].pfn = ::MmGetPhysicalAddress(&vcpu_context->pdpt).QuadPart >> 12;
+
+	for (auto i = 0; i < intel::EPT_ENTRY_COUNT; i++)
+	{
+		vcpu_context->pdpt[i].read = true;
+		vcpu_context->pdpt[i].write = true;
+		vcpu_context->pdpt[i].supervisor_mode_execute = true;
+		vcpu_context->pdpt[i].user_mode_execute = true;
+		vcpu_context->pdpt[i].pfn = ::MmGetPhysicalAddress(&vcpu_context->pd[i]).QuadPart >> 12;
+	}
+
+	for (auto i = 0; i < intel::EPT_ENTRY_COUNT; i++)
+	{
+		for (auto j = 0; j < intel::EPT_ENTRY_COUNT; j++)
+		{
+			vcpu_context->pd[i][j].read = true;
+			vcpu_context->pd[i][j].write = true;
+			vcpu_context->pd[i][j].supervisor_mode_execute = true;
+			vcpu_context->pd[i][j].user_mode_execute = true;
+			vcpu_context->pd[i][j].must_be_1 = 1;
+			vcpu_context->pd[i][j].type = static_cast<unsigned long long>(intel::MtrrType::WB); // fix - poll mtrr msrs
+			vcpu_context->pd[i][j].pfn = i * intel::EPT_ENTRY_COUNT + j;
+		}
+	}
+}
+
+static void setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long host_cr3)
 {
 	auto virtual_vmcs_region = new (NonPagedPool) intel::Vmcs;
 
 	if (!virtual_vmcs_region)
 	{
 		KdPrint(("[-] could not allocate a vmcs region\n"));
-		return nullptr;
+		return;
 	}
 
 	::RtlSecureZeroMemory(virtual_vmcs_region, intel::VMXON_REGION_SIZE);
@@ -117,7 +156,7 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 		delete[] virtual_vmcs_region;
 		KdPrint(("[-] vmclear failed\n"));
 
-		return nullptr;
+		return;
 	}
 
 	success = vmx::vmptrld(reinterpret_cast<unsigned long long*>(&physical_vmcs_region));
@@ -127,7 +166,7 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 		delete[] virtual_vmcs_region;
 		KdPrint(("[-] vmptrld failed\n"));
 
-		return nullptr;
+		return;
 	}
 
 	auto segment_selectors = asm_helpers::get_segment_selectors();
@@ -149,8 +188,15 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_GS_SELECTOR, static_cast<unsigned short>(segment_selectors.gs & ZERO_RPL_MASK));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_TR_SELECTOR, static_cast<unsigned short>(segment_selectors.tr & ZERO_RPL_MASK));
 
-	// success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_VIRTUAL_PROCESSOR_IDENTIFIER, static_cast<unsigned short>(vcpu_context->processor_index + 1));
-	// success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_EPT_POINTER, 0ull); // use a real ept
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_VIRTUAL_PROCESSOR_IDENTIFIER, 1ull); // use a real VPID?
+
+	intel::VmxEptp ept_pointer = { 0 };
+
+	ept_pointer.type = static_cast<unsigned long long>(intel::MtrrType::WB);
+	ept_pointer.page_walk_length = 3;
+	ept_pointer.pfn = ::MmGetPhysicalAddress(&vcpu_context->pml4).QuadPart >> 12;
+
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_EPT_POINTER, ept_pointer.raw);
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_VMCS_LINK_POINTER, VMCS_LINK_POINTER_NOT_USED);
 
@@ -215,8 +261,9 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 
 	intel::SecondaryProcessorBasedVmxControls secondary_processor_based_vmx_controls = { 0 };
 
-	secondary_processor_based_vmx_controls.enable_ept = false;
-	secondary_processor_based_vmx_controls.enable_vpid = false;
+	secondary_processor_based_vmx_controls.enable_ept = true;
+	secondary_processor_based_vmx_controls.enable_vpid = true;
+	secondary_processor_based_vmx_controls.mode_based_execute_control_for_ept = true;
 	secondary_processor_based_vmx_controls.enable_rdtscp = true;
 	secondary_processor_based_vmx_controls.enable_invpcid = true;
 	secondary_processor_based_vmx_controls.enable_xsaves_xrstors = true;
@@ -263,10 +310,10 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CR4, ::__readcr4());
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_CR4_READ_SHADOW, ::__readcr4());
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_ES_BASE, 0ull); // intel::get_system_segment_base(segment_selectors.es, gdtr.base));
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_BASE, 0ull); // intel::get_system_segment_base(segment_selectors.cs, gdtr.base));
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_SS_BASE, 0ull); // intel::get_system_segment_base(segment_selectors.ss, gdtr.base));
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DS_BASE, 0ull); // intel::get_system_segment_base(segment_selectors.ds, gdtr.base));
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_ES_BASE, 0ull);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_BASE, 0ull);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_SS_BASE, 0ull);
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DS_BASE, 0ull);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_FS_BASE, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_FS_BASE)));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GS_BASE, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_GS_BASE)));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_LDTR_BASE, intel::get_system_segment_base(segment_selectors.ldtr, gdtr.base));
@@ -290,17 +337,15 @@ static void* setup_vmcs(loader::VcpuContext* vcpu_context, unsigned long long ho
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_GDTR_BASE, gdtr.base);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_IDTR_BASE, idtr.base);
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RSP, reinterpret_cast<unsigned long long>(vcpu_context->stack + sizeof(loader::VcpuContext) - 8));
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RSP, reinterpret_cast<unsigned long long>(vcpu_context->stack + loader::STACK_LIMIT - 8));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RIP, reinterpret_cast<unsigned long long>(_restore_guest));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_RFLAGS, ::__readeflags());
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_RSP, reinterpret_cast<unsigned long long>(vcpu_context->stack + sizeof(loader::VcpuContext) - 8));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_RIP, reinterpret_cast<unsigned long long>(_vmexit_handler));
 
-	if (!success)
+	if (success)
 	{
-		return nullptr;
+		vcpu_context->vmcs_region = virtual_vmcs_region;
 	}
-
-	return virtual_vmcs_region;
 }
