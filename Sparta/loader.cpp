@@ -80,6 +80,9 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 	// log some MSRs to check syscall stuff
 	logging::dump_syscall_check();
 
+	// dump idt
+	logging::dump_idt();
+
 	return true;
 }
 

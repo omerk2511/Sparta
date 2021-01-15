@@ -83,3 +83,37 @@ void logging::dump_syscall_check()
 	KdPrint(("IA32_STAR = 0x%llx\n", ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_STAR))));
 	KdPrint(("IA32_LSTAR = 0x%llx\n", ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_LSTAR))));
 }
+
+#pragma pack(push, 1)
+union IdtDescriptor
+{
+	unsigned long long raw_1;
+	unsigned long long raw_2;
+
+	struct
+	{
+		unsigned long long offset_low : 16;
+		unsigned long long cs : 16;
+		unsigned long long attributes : 16;
+		unsigned long long offset_mid : 16;
+		unsigned long long offset_high : 32;
+	};
+};
+#pragma pack(pop)
+
+void logging::dump_idt()
+{
+	intel::Idtr idtr = { 0 };
+	::__sidt(&idtr);
+
+	KdPrint(("idt base address = 0x%llx\n", idtr.base));
+	KdPrint(("idt limit = 0x%hx\n", idtr.limit));
+
+	for (auto i = 0; i < 256; i++)
+	{
+		auto descriptor = reinterpret_cast<IdtDescriptor*>(idtr.base + i * sizeof(IdtDescriptor));
+		auto address = descriptor->offset_low | (descriptor->offset_mid << 16) | (descriptor->offset_high << 32);
+
+		KdPrint(("idt entry #%i: 0x%llx\n", i, address));
+	}
+}

@@ -184,7 +184,25 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 	switch (exit_reason & 0xffff)
 	{
 	case 2: {
+		KdPrint(("rsp: 0x%llx\n", guest_state->rsp));
+		KdPrint(("rax: 0x%llx\n", guest_state->rax));
+		KdPrint(("rcx: 0x%llx\n", guest_state->rcx));
+		KdPrint(("rdx: 0x%llx\n", guest_state->rdx));
+		KdPrint(("rbx: 0x%llx\n", guest_state->rbx));
+		KdPrint(("rbp: 0x%llx\n", guest_state->rbp));
+		KdPrint(("rsi: 0x%llx\n", guest_state->rsi));
+		KdPrint(("rdi: 0x%llx\n", guest_state->rdi));
+		KdPrint(("r8: 0x%llx\n", guest_state->r8));
+		KdPrint(("r9: 0x%llx\n", guest_state->r9));
+		KdPrint(("r10: 0x%llx\n", guest_state->r10));
+		KdPrint(("r11: 0x%llx\n", guest_state->r11));
+		KdPrint(("r12: 0x%llx\n", guest_state->r12));
+		KdPrint(("r13: 0x%llx\n", guest_state->r13));
+		KdPrint(("r14: 0x%llx\n", guest_state->r14));
+		KdPrint(("r15: 0x%llx\n", guest_state->r15));
+
 		::__debugbreak();
+
 		break;
 	}
 
