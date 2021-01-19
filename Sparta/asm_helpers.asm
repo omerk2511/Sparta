@@ -52,6 +52,20 @@ _get_rsp PROC
 	ret
 _get_rsp ENDP
 
+_invept PROC
+	invept rcx, oword ptr [rdx]
+
+	jz invept_error
+	jc invept_error
+
+	mov rax, 1		; true - success
+	ret
+
+invept_error:
+	xor rax, rax	; false - failure
+	ret
+_invept ENDP
+
 _vmexit_handler PROC
 	push r15
 	push r14
@@ -105,7 +119,7 @@ _restore_guest PROC
 	nop ; can be replaced with int3
 
 	mov rcx, rsp
-	sub rcx, 7ff8h
+	sub rcx, 0ff8h
 
 	movaps  xmm0, [rcx+1a0h]
     movaps  xmm1, [rcx+1b0h]

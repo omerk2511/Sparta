@@ -2,8 +2,6 @@
 #include "vmx.h"
 #include "asm_helpers.h"
 
-#include <ntddk.h>
-
 void logging::dump_vmcs_guest_state_area()
 {
 	KdPrint(("VMCS_GUEST_ES_SELECTOR: 0x%hx\n", vmx::vmread<unsigned short>(intel::VmcsField::VMCS_GUEST_ES_SELECTOR).value));
@@ -112,8 +110,8 @@ void logging::dump_idt()
 	for (auto i = 0; i < 256; i++)
 	{
 		auto descriptor = reinterpret_cast<IdtDescriptor*>(idtr.base + i * sizeof(IdtDescriptor));
-		auto address = descriptor->offset_low | (descriptor->offset_mid << 16) | (descriptor->offset_high << 32);
+		auto address = reinterpret_cast<unsigned char*>(descriptor->offset_low | (descriptor->offset_mid << 16) | (descriptor->offset_high << 32));
 
-		KdPrint(("idt entry #%i: 0x%llx\n", i, address));
+		KdPrint(("idt entry #%i: 0x%llx, cs = 0x%lx, attrs = 0x%lx, first opcode = 0x%lx\n", i, address, descriptor->cs, descriptor->attributes, address[0]));
 	}
 }

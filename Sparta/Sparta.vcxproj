@@ -144,6 +144,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ept.cpp" />
     <ClCompile Include="intel.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="logging.cpp" />
@@ -151,10 +152,12 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="multiprocessing.cpp" />
     <ClCompile Include="validation.cpp" />
+    <ClCompile Include="vmcs.cpp" />
     <ClCompile Include="vmx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asm_helpers.h" />
+    <ClInclude Include="ept.h" />
     <ClInclude Include="intel.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="logging.h" />
@@ -163,6 +166,8 @@
     <ClInclude Include="scope_guard.h" />
     <ClInclude Include="kstd.h" />
     <ClInclude Include="validation.h" />
+    <ClInclude Include="vcpu.h" />
+    <ClInclude Include="vmcs.h" />
     <ClInclude Include="vmx.h" />
   </ItemGroup>
   <ItemGroup>
