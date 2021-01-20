@@ -153,7 +153,7 @@ void vmcs::setup(VcpuContext* vcpu_context, unsigned long long host_cr3)
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, secondary_processor_based_vmx_controls.raw);
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_EXCEPTION_BITMAP, 0xfffffffffful); // move to constant
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_EXCEPTION_BITMAP, 0xfffffff5ul); // move to constant
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_ES_LIMIT, ::__segmentlimit(segment_selectors.es));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_LIMIT, ::__segmentlimit(segment_selectors.cs));

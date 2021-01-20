@@ -78,7 +78,7 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 	}
 	else
 	{
-		// KdPrint(("[*] in guest :)\n"));
+		KdPrint(("[*] in guest :)\n"));
 	}
 
 	if (!success)
@@ -87,12 +87,6 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 		return false;
 	}
 	KdPrint(("[+] successfully initialized vmx in processor %ul\n", processor_index));
-
-	// log some MSRs to check syscall stuff
-	// logging::dump_syscall_check();
-
-	// dump idt
-	// logging::dump_idt();
 
 	data[0] = 'c';
 	data[1] = 'a';
