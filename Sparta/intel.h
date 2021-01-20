@@ -314,8 +314,8 @@ namespace intel
 
     enum class VmcsField
     {
-        VMCS_CTRL_VIRTUAL_PROCESSOR_IDENTIFIER = 0x0,
-        VMCS_CTRL_POSTED_INTERRUPT_NOTIFICATION_VECTOR = 0x2,
+        VMCS_CTRL_VIRTUAL_PROCESSOR_IDENTIFIER = 0x0,           // replace with CTRL_VIRTUAL_PROCESSOR_IDENTIFIER
+        VMCS_CTRL_POSTED_INTERRUPT_NOTIFICATION_VECTOR = 0x2,   // replace with CTRL_POSTED_INTERRUPT_NOTIFICATION_VECTOR
         VMCS_CTRL_EPTP_INDEX = 0x4,
         VMCS_GUEST_ES_SELECTOR = 0x800,
         VMCS_GUEST_CS_SELECTOR = 0x802,
@@ -784,6 +784,104 @@ namespace intel
             unsigned long long : 2;
             unsigned long long fe : 10;
             unsigned long long e : 11;
+        };
+    };
+
+    enum class VmExitReason : unsigned long
+    {
+        EXCEPTION_OR_NMI,
+        EXTERNAL_INTERRUPT,
+        TRIPLE_FAULT,
+        INIT_SIGNAL,
+        SIPI,
+        IO_SMI,
+        OTHER_SMI,
+        INTERRUPT_WINDOW,
+        NMI_WINDOW,
+        TASK_SWITCH,
+        CPUID,
+        GETSEC,
+        HLT,
+        INVD,
+        INVLPG,
+        RDPMC,
+        RDTMC,
+        RSM,
+        VMCALL,
+        VMCLEAR,
+        VMLAUNCH,
+        VMPTRLD,
+        VMPTRST,
+        VMREAD,
+        VMRESUME,
+        VMWRITE,
+        VMXOFF,
+        VMXON,
+        CR_ACCESS,
+        MOV_DR,
+        IO_INSTRUCTION,
+        RDMSR,
+        WRMSR,
+        VM_ENTRY_FAILURE_GUEST_STATE,
+        VM_ENTRY_FAILURE_MSR_LOADING,
+        MWAIT = 36,
+        MTF,
+        MONITOR = 39,
+        PAUSE,
+        VM_ENTRY_FAILURE_MACHINE_CHECK_EVENT,
+        TPR_BELOW_THRESHOLD = 43,
+        APIC_ACCESS,
+        VIRTUALIZED_EOI,
+        ACCESS_TO_GDTR_IDTR,
+        ACESS_TO_LDTR_TR,
+        EPT_VIOLATION,
+        EPT_MISCONFIGURATION,
+        INVEPT,
+        RDTSCP,
+        VMX_PREEMPTION_TIME_EXPIRED,
+        INVVPID,
+        WBINVD,
+        XSETBV,
+        APIC_WRITE,
+        RDRAND,
+        INVPCID,
+        VMFUNC,
+        ENCLS,
+        RDSEED,
+        PML_FULL,
+        XSAVES,
+        XRSTORS,
+        SPP_RELATED_EVENT,
+        UMWAIT,
+        TPAUSE
+    };
+
+    union VmExitInterruptionInformation
+    {
+        unsigned long raw;
+
+        struct
+        {
+            unsigned long vector : 8;
+            unsigned long type : 3;
+            unsigned long error_code_valid : 1;
+            unsigned long nmi_unblocking_due_to_iret : 1; // check
+            unsigned long : 18;
+            unsigned long valid : 1;
+        };
+    };
+
+    union VmEntryInterruptionInformation
+    {
+        unsigned long raw;
+
+        struct
+        {
+            unsigned long vector : 8;
+            unsigned long type : 3;
+            unsigned long deliver_error_code : 1;
+            unsigned long : 19;
+            unsigned long valid : 1;
         };
     };
 

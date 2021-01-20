@@ -1,5 +1,7 @@
 #pragma once
 
+#include "intel.h"
+
 namespace kstd
 {
 	template<bool B, typename T, typename F>

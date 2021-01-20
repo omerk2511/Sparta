@@ -2,6 +2,7 @@
 
 #include "intel.h"
 #include "kstd.h"
+#include "ept.h"
 
 #include <intrin.h>
 #include <ntddk.h>
