@@ -94,7 +94,6 @@ void vmcs::setup(VcpuContext* vcpu_context, unsigned long long host_cr3)
 
 	// primary_processor_based_vmx_controls.cr3_load_exiting = true; // fix vmexit handler
 	primary_processor_based_vmx_controls.activate_secondary_controls = true;
-	// primary_processor_based_vmx_controls.monitor_trap_flag = true;
 
 	vmx::adjust_vmx_controls(
 		primary_processor_based_vmx_controls.raw,
@@ -153,7 +152,7 @@ void vmcs::setup(VcpuContext* vcpu_context, unsigned long long host_cr3)
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, secondary_processor_based_vmx_controls.raw);
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_EXCEPTION_BITMAP, 0xfffffff5ul); // move to constant
+	// success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_EXCEPTION_BITMAP, 0xfffffff5ul); // move to constant
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_ES_LIMIT, ::__segmentlimit(segment_selectors.es));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_LIMIT, ::__segmentlimit(segment_selectors.cs));
@@ -190,13 +189,8 @@ void vmcs::setup(VcpuContext* vcpu_context, unsigned long long host_cr3)
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CR4, ::__readcr4());
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_CTRL_CR4_READ_SHADOW, ::__readcr4());
 
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_ES_BASE, 0ull);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_CS_BASE, 0ull);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_SS_BASE, 0ull);
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_DS_BASE, 0ull);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_FS_BASE, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_FS_BASE)));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GS_BASE, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_GS_BASE)));
-	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_LDTR_BASE, intel::get_system_segment_base(segment_selectors.ldtr, gdtr.base));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_TR_BASE, intel::get_system_segment_base(segment_selectors.tr, gdtr.base));
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_GUEST_GDTR_BASE, gdtr.base);
@@ -211,6 +205,7 @@ void vmcs::setup(VcpuContext* vcpu_context, unsigned long long host_cr3)
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_FS_BASE, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_FS_BASE)));
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_GS_BASE, ::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_GS_BASE)));
+	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_TR_BASE, intel::get_system_segment_base(segment_selectors.tr, gdtr.base));
 
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_GDTR_BASE, gdtr.base);
 	success &= vmx::vmwrite(intel::VmcsField::VMCS_HOST_IDTR_BASE, idtr.base);

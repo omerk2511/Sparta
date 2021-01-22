@@ -68,6 +68,8 @@ _invept ENDP
 
 _vmexit_handler PROC
 	push r15
+	mov r15, cr2
+	push r15
 	push r14
 	push r13
 	push r12
@@ -104,6 +106,8 @@ _vmexit_handler PROC
 	pop r12
 	pop r13
 	pop r14
+	pop r15
+	mov cr2, r15
 	pop r15
 
 	sub rsp, 100h

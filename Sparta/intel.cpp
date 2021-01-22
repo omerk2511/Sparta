@@ -8,16 +8,10 @@ auto intel::get_system_segment_base(unsigned short segment_selector, unsigned lo
 		return 0;
 	}
 
-	auto descriptor = reinterpret_cast<intel::SegmentDescriptor*>(
+	auto descriptor = reinterpret_cast<intel::SystemSegmentDescriptor*>(
 		gdt_base + (segment_selector >> 3) * sizeof(intel::SegmentDescriptor));
 
-	if (descriptor->attr_0 & 0x10)
-	{
-		auto system_descriptor = reinterpret_cast<intel::SystemSegmentDescriptor*>(descriptor);
-		return (system_descriptor->base_0 | (system_descriptor->base_1 << 24));
-	}
-
-	return (descriptor->base_0 | (descriptor->base_1 << 24));
+	return (descriptor->base_0 | (descriptor->base_1 << 24) | (descriptor->base_2 << 32));
 }
 
 auto intel::get_segment_access_rights(unsigned short segment_selector) -> SegmentAccessRights

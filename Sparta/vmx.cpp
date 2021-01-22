@@ -137,6 +137,7 @@ struct GuestState
 	unsigned long long r12;
 	unsigned long long r13;
 	unsigned long long r14;
+	unsigned long long cr2;
 	unsigned long long r15;
 };
 #pragma pack(pop)
@@ -168,20 +169,22 @@ static auto select_register(GuestState* guest_state, unsigned long long register
 
 extern "C" void vmexit_handler(GuestState* guest_state)
 {
+	// KdPrint(("[*] guest idtr: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_IDTR_BASE).value));
+
 	auto vcpu_context = reinterpret_cast<VcpuContext*>(reinterpret_cast<unsigned long long>(guest_state) & 0xfffffffffffff000);
-	KdPrint(("[*] vcpu context: 0x%llx\n", vcpu_context));
+	// KdPrint(("[*] vcpu context: 0x%llx\n", vcpu_context));
 
 	auto [success_1, exit_reason] = vmx::vmread<unsigned long>(intel::VmcsField::VMCS_EXIT_REASON);
 	auto [success_2, exit_qualification] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_EXIT_QUALIFICATION);
 
-	KdPrint(("[*] exit reason: %d\n", exit_reason & 0xffff));
-	KdPrint(("[*] exit qualification: 0x%llx\n", exit_qualification));
+	// KdPrint(("[*] exit reason: %d\n", exit_reason & 0xffff));
+	// KdPrint(("[*] exit qualification: 0x%llx\n", exit_qualification));
 
 	auto [success_3, guest_rip] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RIP);
-	auto [success_4, guest_rsp] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RSP);
+	// auto [success_4, guest_rsp] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RSP);
 
-	KdPrint(("[*] guest rip: 0x%p\n", guest_rip));
-	KdPrint(("[*] guest rsp: 0x%p\n", guest_rsp));
+	// KdPrint(("[*] guest rip: 0x%p\n", guest_rip));
+	// KdPrint(("[*] guest rsp: 0x%p\n", guest_rsp));
 
 	auto [success_5, instruction_length] = vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_VMEXIT_INSTRUCTION_LENGTH);
 
@@ -208,13 +211,37 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 
 		increment_rip = false;
 
-		::__debugbreak();
+		if (vm_exit_interruption_information.vector == 8)
+		{
+			::__debugbreak();
+		} else if (vm_exit_interruption_information.vector == 14)
+		{
+			guest_state->cr2 = exit_qualification;
+		}
+
+		break;
+	}
+
+	case intel::VmExitReason::EXTERNAL_INTERRUPT: {
+		intel::IdtVectoringInformation idt_vectoring_information = { vmx::vmread<unsigned long>(intel::VmcsField::VMCS_IDT_VECTORING_INFORMATION).value };
+
+		KdPrint(("[*] irql %d - isr #%d got called\n", ::KeGetCurrentIrql(), idt_vectoring_information.vector));
+
+		intel::VmEntryInterruptionInformation vm_entry_interruption_information = { 0 };
+
+		vm_entry_interruption_information.vector = idt_vectoring_information.vector;
+		vm_entry_interruption_information.type = idt_vectoring_information.type;
+		vm_entry_interruption_information.valid = true;
+
+		vmx::vmwrite(intel::VmcsField::VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, vm_entry_interruption_information.raw);
+
+		increment_rip = false;
 
 		break;
 	}
 
 	case intel::VmExitReason::TRIPLE_FAULT: {
-		KdPrint(("rsp: 0x%llx\n", guest_state->rsp));
+		KdPrint(("rsp: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RSP).value));
 		KdPrint(("rax: 0x%llx\n", guest_state->rax));
 		KdPrint(("rcx: 0x%llx\n", guest_state->rcx));
 		KdPrint(("rdx: 0x%llx\n", guest_state->rdx));
@@ -283,7 +310,7 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 	}
 
 	case intel::VmExitReason::WRMSR: {
-		KdPrint(("[*] wrmsr #%lx, 0x%llx\n", static_cast<unsigned long>(guest_state->rcx), (guest_state->rax & 0xffffffff) | (guest_state->rdx << 32)));
+		// KdPrint(("[*] wrmsr #%lx, 0x%llx\n", static_cast<unsigned long>(guest_state->rcx), (guest_state->rax & 0xffffffff) | (guest_state->rdx << 32)));
 
 		::__writemsr(
 			static_cast<unsigned long>(guest_state->rcx),

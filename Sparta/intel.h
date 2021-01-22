@@ -263,7 +263,8 @@ namespace intel
             unsigned long long attr_0 : 8;
             unsigned long long limit_1 : 4;
             unsigned long long attr_1 : 4;
-            unsigned long long base_1 : 40;
+            unsigned long long base_1 : 8;
+            unsigned long long base_2 : 32;
             unsigned long long : 32;
         };
     };
@@ -867,6 +868,20 @@ namespace intel
             unsigned long error_code_valid : 1;
             unsigned long nmi_unblocking_due_to_iret : 1; // check
             unsigned long : 18;
+            unsigned long valid : 1;
+        };
+    };
+
+    union IdtVectoringInformation
+    {
+        unsigned long raw;
+
+        struct
+        {
+            unsigned long vector : 8;
+            unsigned long type : 3;
+            unsigned long error_code_valid : 1;
+            unsigned long : 19;
             unsigned long valid : 1;
         };
     };

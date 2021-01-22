@@ -18,13 +18,6 @@ static auto is_hypervisor_present() -> bool
 	return (cpuid_info.ebx == 0x72617053);
 }
 
-static bool handle_write_hook(VcpuContext* vcpu_context)
-{
-	KdPrint(("[*] got ept write hook! blocking the write attempt.\n"));
-	ept::unhook(vcpu_context);
-	return true;
-}
-
 auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 {
 	auto processor_index = static_cast<unsigned long>(multiprocessing::get_current_processor_id());
@@ -63,11 +56,6 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 	}
 	KdPrint(("[+] successfully initialized the vmcs in processor %ul\n", processor_index));
 
-	auto data = new (NonPagedPool) char[4096];
-	::RtlSecureZeroMemory(data, 4096);
-
-	ept::hook_write(reinterpret_cast<void*>(::MmGetPhysicalAddress(&data[5]).QuadPart), handle_write_hook, vcpu_context);
-
 	auto success = true;
 	::RtlCaptureContext(&vcpu_context->guest_context);
 	
@@ -87,13 +75,6 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 		return false;
 	}
 	KdPrint(("[+] successfully initialized vmx in processor %ul\n", processor_index));
-
-	data[0] = 'c';
-	data[1] = 'a';
-	data[5] = 'b';
-	data[7] = 'd';
-
-	delete[] data;
 
 	return true;
 }
