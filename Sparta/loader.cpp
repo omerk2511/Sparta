@@ -21,13 +21,13 @@ static auto is_hypervisor_present() -> bool
 auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 {
 	auto processor_index = static_cast<unsigned long>(multiprocessing::get_current_processor_id());
-	KdPrint(("[*] loading sparta on processor %ul\n", processor_index));
+	KdPrint(("[*] loading sparta on processor %u\n", processor_index));
 
 	auto vcpu_context = allocate_vcpu_context();
 
 	if (!vcpu_context)
 	{
-		KdPrint(("[-] could not allocate a vcpu context in processor %ul\n", processor_index));
+		KdPrint(("[-] could not allocate a vcpu context in processor %u\n", processor_index));
 		return false;
 	}
 	KdPrint(("[+] successfully allocated a vcpu context @0x%llx\n", vcpu_context));
@@ -41,20 +41,20 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 
 	if (!vcpu_context->vmxon_region)
 	{
-		KdPrint(("[-] failed initializing vmx in processor %ul\n", processor_index));
+		KdPrint(("[-] failed initializing vmx in processor %u\n", processor_index));
 		return false;
 	}
-	KdPrint(("[+] entered vmx root mode successfully in processor %ul\n", processor_index));
+	KdPrint(("[+] entered vmx root mode successfully in processor %u\n", processor_index));
 
 	ept::setup(vcpu_context);
 	vmcs::setup(vcpu_context, sparta_context->host_cr3);
 
 	if (!vcpu_context->vmcs_region)
 	{
-		KdPrint(("[-] failed initializing the vmcs in processor %ul\n", processor_index));
+		KdPrint(("[-] failed initializing the vmcs in processor %u\n", processor_index));
 		return false;
 	}
-	KdPrint(("[+] successfully initialized the vmcs in processor %ul\n", processor_index));
+	KdPrint(("[+] successfully initialized the vmcs in processor %u\n", processor_index));
 
 	auto success = true;
 	::RtlCaptureContext(&vcpu_context->guest_context);
@@ -71,10 +71,10 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 
 	if (!success)
 	{
-		KdPrint(("[-] failed initializing vmx in processor %ul\n", processor_index));
+		KdPrint(("[-] failed initializing vmx in processor %u\n", processor_index));
 		return false;
 	}
-	KdPrint(("[+] successfully initialized vmx in processor %ul\n", processor_index));
+	KdPrint(("[+] successfully initialized vmx in processor %u\n", processor_index));
 
 	return true;
 }

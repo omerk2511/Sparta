@@ -120,7 +120,6 @@ _vmresume ENDP
 
 _restore_guest PROC
 	cli
-	nop ; can be replaced with int3
 
 	mov rcx, rsp
 	sub rcx, 0ff8h
