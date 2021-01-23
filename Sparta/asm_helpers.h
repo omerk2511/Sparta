@@ -15,12 +15,12 @@ extern "C"
 
 	auto _get_segment_access_rights(unsigned long selector) -> unsigned long;
 
-	auto _get_rsp() -> void*;
-
 	auto _invept(unsigned long type, void* descriptor) -> bool;
 
 	void _vmexit_handler();
 	void _restore_guest();
+
+	void _invd();
 }
 
 namespace asm_helpers
@@ -77,14 +77,14 @@ namespace asm_helpers
 		return segment_access_rights;
 	}
 
-	inline auto get_rsp() -> void*
-	{
-		return _get_rsp();
-	}
-
 	inline auto invept() -> bool
 	{
 		unsigned long long descriptor[] = { vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_CTRL_EPT_POINTER).value, 0 };
 		return _invept(2, &descriptor);
+	}
+
+	inline void invd()
+	{
+		_invd();
 	}
 }

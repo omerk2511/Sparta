@@ -286,6 +286,12 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 		break;
 	}
 
+	case intel::VmExitReason::INVD: {
+		asm_helpers::invd();
+		
+		break;
+	}
+
 	case intel::VmExitReason::CR_ACCESS: {
 		intel::ControlRegisterAccessExitQualification cr_access_exit_qual = { exit_qualification };
 
@@ -330,6 +336,15 @@ extern "C" void vmexit_handler(GuestState* guest_state)
 
 		increment_rip = ept::handle_violation(vcpu_context);
 
+		break;
+	}
+
+	case intel::VmExitReason::XSETBV: {
+		::_xsetbv(
+			static_cast<unsigned long>(guest_state->rcx),
+			(guest_state->rax & 0xffffffff) | (guest_state->rdx << 32)
+		);
+		
 		break;
 	}
 	}

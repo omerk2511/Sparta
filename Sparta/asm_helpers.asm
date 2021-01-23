@@ -169,4 +169,9 @@ _restore_guest PROC
     ret
 _restore_guest ENDP
 
+_invd PROC
+	invd
+	ret
+_invd ENDP
+
 END
