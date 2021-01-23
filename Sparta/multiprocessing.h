@@ -61,7 +61,7 @@ namespace multiprocessing
 
 		if constexpr (!kstd::is_same<Ret, void>)
 		{
-			return_values = new (PagedPool) Ret[processor_count];
+			return_values = new (NonPagedPool) Ret[processor_count];
 
 			if (!return_values)
 			{

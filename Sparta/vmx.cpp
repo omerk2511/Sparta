@@ -169,8 +169,6 @@ static auto select_register(GuestState* guest_state, unsigned long long register
 
 extern "C" void vmexit_handler(GuestState* guest_state)
 {
-	// KdPrint(("[*] guest idtr: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_IDTR_BASE).value));
-
 	auto vcpu_context = reinterpret_cast<VcpuContext*>(reinterpret_cast<unsigned long long>(guest_state) & 0xfffffffffffff000);
 	// KdPrint(("[*] vcpu context: 0x%llx\n", vcpu_context));
 
