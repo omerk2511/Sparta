@@ -49,6 +49,15 @@
     <ClCompile Include="vmcs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="module_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="token_stealing_module.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="basic_module.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="validation.h">
@@ -88,6 +97,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vcpu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base_module.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="module_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="token_stealing_module.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="basic_module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

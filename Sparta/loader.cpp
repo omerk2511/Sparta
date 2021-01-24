@@ -8,6 +8,9 @@
 #include "asm_helpers.h"
 #include "logging.h"
 #include "memory.h"
+#include "module_manager.h"
+#include "basic_module.h"
+#include "token_stealing_module.h"
 
 static auto allocate_vcpu_context() -> VcpuContext*;
 
@@ -22,6 +25,9 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 {
 	auto processor_index = static_cast<unsigned long>(multiprocessing::get_current_processor_id());
 	KdPrint(("[*] loading sparta on processor %u\n", processor_index));
+
+	sparta::register_module(new (NonPagedPool) BasicModule);
+	// sparta::register_module(new (NonPagedPool) TokenStealingModule);
 
 	auto vcpu_context = allocate_vcpu_context();
 
@@ -47,7 +53,10 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 	KdPrint(("[+] entered vmx root mode successfully in processor %u\n", processor_index));
 
 	ept::setup(vcpu_context);
+	KdPrint(("[+] successfully initialized the ept in processor %u\n", processor_index));
+
 	vmcs::setup(vcpu_context, sparta_context->host_cr3);
+	sparta::initialize_modules();
 
 	if (!vcpu_context->vmcs_region)
 	{

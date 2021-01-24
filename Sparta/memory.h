@@ -8,7 +8,10 @@ auto operator new(size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0) -
 auto operator new[](size_t size, POOL_TYPE pool_type = PagedPool, ULONG tag = 0) -> void*;
 
 void operator delete(void* address);
+void operator delete(void* address, unsigned __int64);
+
 void operator delete[](void* address);
+void operator delete[](void* address, unsigned __int64);
 
 namespace kstd
 {

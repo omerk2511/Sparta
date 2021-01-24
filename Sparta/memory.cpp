@@ -18,12 +18,22 @@ auto operator new[](size_t size, POOL_TYPE pool_type, ULONG tag) -> void*
     );
 }
 
+void operator delete(void* address, unsigned __int64)
+{
+	::ExFreePool(address);
+}
+
 void operator delete(void* address)
+{
+    ::ExFreePool(address);
+}
+
+void operator delete[](void* address, unsigned __int64)
 {
 	::ExFreePool(address);
 }
 
 void operator delete[](void* address)
 {
-	::ExFreePool(address);
+    ::ExFreePool(address);
 }

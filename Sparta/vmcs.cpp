@@ -92,7 +92,6 @@ void vmcs::setup(VcpuContext* vcpu_context, unsigned long long host_cr3)
 
 	intel::PrimaryProcessorBasedVmxControls primary_processor_based_vmx_controls = { 0 };
 
-	// primary_processor_based_vmx_controls.cr3_load_exiting = true; // fix vmexit handler
 	primary_processor_based_vmx_controls.activate_secondary_controls = true;
 
 	vmx::adjust_vmx_controls(

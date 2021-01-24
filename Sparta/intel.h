@@ -854,7 +854,8 @@ namespace intel
         XRSTORS,
         SPP_RELATED_EVENT,
         UMWAIT,
-        TPAUSE
+        TPAUSE,
+        MAX
     };
 
     union VmExitInterruptionInformation
@@ -902,6 +903,9 @@ namespace intel
 
     auto get_system_segment_base(unsigned short segment_selector, unsigned long long gdt_base) -> unsigned long long;
     auto get_segment_access_rights(unsigned short segment_selector) -> SegmentAccessRights;
+
+    auto is_km_address(unsigned long long address) -> bool;
+    auto is_um_address(unsigned long long address) -> bool;
 }
 
 #pragma pack(pop)

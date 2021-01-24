@@ -144,27 +144,34 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="basic_module.cpp" />
     <ClCompile Include="ept.cpp" />
     <ClCompile Include="intel.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="logging.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="module_manager.cpp" />
     <ClCompile Include="multiprocessing.cpp" />
+    <ClCompile Include="token_stealing_module.cpp" />
     <ClCompile Include="validation.cpp" />
     <ClCompile Include="vmcs.cpp" />
     <ClCompile Include="vmx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asm_helpers.h" />
+    <ClInclude Include="basic_module.h" />
     <ClInclude Include="ept.h" />
     <ClInclude Include="intel.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="logging.h" />
+    <ClInclude Include="base_module.h" />
+    <ClInclude Include="module_manager.h" />
     <ClInclude Include="multiprocessing.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="scope_guard.h" />
     <ClInclude Include="kstd.h" />
+    <ClInclude Include="token_stealing_module.h" />
     <ClInclude Include="validation.h" />
     <ClInclude Include="vcpu.h" />
     <ClInclude Include="vmcs.h" />

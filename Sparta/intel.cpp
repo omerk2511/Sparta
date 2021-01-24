@@ -29,3 +29,13 @@ auto intel::get_segment_access_rights(unsigned short segment_selector) -> Segmen
 
 	return access_rights;
 }
+
+auto intel::is_km_address(unsigned long long address) -> bool
+{
+	return static_cast<bool>(address >> 63);
+}
+
+auto intel::is_um_address(unsigned long long address) -> bool
+{
+	return !static_cast<bool>(address >> 63);
+}
