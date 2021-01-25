@@ -7,7 +7,7 @@ Basically, Sparta traces all suspicious kernel mode code executions, kernel stru
 TBD
 
 ## Screenshots
-TBD
+![basic execution](https://github.com/omerk2511/Sparta/blob/master/Screenshots/1.png?raw=true)
 
 ## How It Works?
 TBD
