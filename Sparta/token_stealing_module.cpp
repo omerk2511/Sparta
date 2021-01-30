@@ -2,6 +2,7 @@
 #include "vmx.h"
 
 PACCESS_TOKEN TokenStealingModule::_system_token;
+bool TokenStealingModule::_should_bsod;
 
 TokenStealingModule::TokenStealingModule()
 {
@@ -12,6 +13,9 @@ TokenStealingModule::TokenStealingModule()
 
 	_system_token = ::PsReferencePrimaryToken(system_process);
 	::PsDereferencePrimaryToken(_system_token);
+
+	_should_bsod = false;
+	::KeRegisterNmiCallback(reinterpret_cast<PNMI_CALLBACK>(handle_nmi), nullptr);
 }
 
 void TokenStealingModule::handle_wrmsr(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&)
@@ -35,5 +39,16 @@ void TokenStealingModule::handle_wrmsr(VcpuContext*, sparta::VmExitGuestState* g
 		return;
 	}
 
-	// ::KeBugCheck(1337ul); - should inject a nonmaskable interrupt
+	_should_bsod = true;
+	vmx::inject_nmi();
+}
+
+bool TokenStealingModule::handle_nmi(void*, bool)
+{
+	if (!_should_bsod)
+	{
+		return false;
+	}
+
+	::KeBugCheck(0x1337ul);
 }

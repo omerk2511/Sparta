@@ -120,6 +120,17 @@ void vmx::adjust_vmx_controls(unsigned long& vmx_controls, intel::Ia32VmxControl
 	vmx_controls &= hint.allowed_1_settings;
 }
 
+void vmx::inject_nmi()
+{
+	intel::VmEntryInterruptionInformation vm_entry_interruption_information = { 0 };
+
+	vm_entry_interruption_information.vector = 2; // NMI_VECTOR;
+	vm_entry_interruption_information.type = 2; // intel::VmxInterruptionType::NMI
+	vm_entry_interruption_information.valid = true;
+
+	vmx::vmwrite(intel::VmcsField::VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, vm_entry_interruption_information.raw);
+}
+
 extern "C" void vmexit_handler(sparta::VmExitGuestState* guest_state)
 {
 	auto vcpu_context = reinterpret_cast<VcpuContext*>(reinterpret_cast<unsigned long long>(guest_state) & 0xfffffffffffff000);

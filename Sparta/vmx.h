@@ -17,6 +17,8 @@ namespace vmx
 
 	void adjust_vmx_controls(unsigned long& vmx_controls, intel::Ia32VmxControlsHint hint);
 
+	void inject_nmi();
+
 	template<typename T>
 		requires kstd::is_unsigned_integer<T>
 	struct VmreadResult
