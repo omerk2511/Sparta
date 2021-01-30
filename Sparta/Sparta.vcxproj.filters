@@ -58,6 +58,9 @@
     <ClCompile Include="basic_module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="base_module.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="validation.h">

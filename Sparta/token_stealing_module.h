@@ -7,12 +7,9 @@ class TokenStealingModule final : public sparta::BaseModule
 public:
 	explicit TokenStealingModule();
 
-public:
-	virtual void initialize() volatile override;
+private:
+	static void handle_wrmsr(VcpuContext* vcpu_context, sparta::VmExitGuestState* guest_state, bool& increment_rip);
 
 private:
-	static void handle_cr_access(VcpuContext* vcpu_context, sparta::VmExitGuestState* guest_state, bool& increment_rip);
-
-private:
-	// SYSTEM tokens
+	static PACCESS_TOKEN _system_token;
 };

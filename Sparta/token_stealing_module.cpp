@@ -1,20 +1,39 @@
 #include "token_stealing_module.h"
 #include "vmx.h"
 
-TokenStealingModule::TokenStealingModule() :
-	sparta::BaseModule()
+PACCESS_TOKEN TokenStealingModule::_system_token;
+
+TokenStealingModule::TokenStealingModule()
 {
-	_vmexit_handlers[static_cast<size_t>(intel::VmExitReason::CR_ACCESS)] = handle_cr_access;
-	// initialize SYSTEM tokens
+	_vmexit_handlers[static_cast<size_t>(intel::VmExitReason::WRMSR)] = handle_wrmsr;
+
+	PEPROCESS system_process = { 0 };
+	::PsLookupProcessByProcessId(::ULongToHandle(4ul), &system_process);
+
+	_system_token = ::PsReferencePrimaryToken(system_process);
+	::PsDereferencePrimaryToken(_system_token);
 }
 
-void TokenStealingModule::initialize() volatile
+void TokenStealingModule::handle_wrmsr(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&)
 {
-	intel::PrimaryProcessorBasedVmxControls primary_processor_based_vmx_controls = { vmx::vmread<unsigned long>(intel::VmcsField::VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS).value };
-	primary_processor_based_vmx_controls.cr3_load_exiting = true;
-	vmx::vmwrite(intel::VmcsField::VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, primary_processor_based_vmx_controls.raw);
-}
+	if (static_cast<intel::Msr>(guest_state->rcx) != intel::Msr::IA32_KERNEL_GS_BASE)
+	{
+		return;
+	}
 
-void TokenStealingModule::handle_cr_access(VcpuContext*, sparta::VmExitGuestState*, bool&)
-{
+	if (intel::is_um_address(::__readmsr(static_cast<unsigned long>(intel::Msr::IA32_GS_BASE))))
+	{
+		return;
+	}
+
+	auto token = ::PsReferencePrimaryToken(PsGetCurrentProcess());
+	auto pid = ::PsGetCurrentProcessId();
+
+	if (token != _system_token || pid == ::ULongToHandle(4ul))
+	{
+		::PsDereferencePrimaryToken(token);
+		return;
+	}
+
+	// ::KeBugCheck(1337ul); - should inject a nonmaskable interrupt
 }

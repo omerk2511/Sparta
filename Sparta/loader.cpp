@@ -27,7 +27,7 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 	KdPrint(("[*] loading sparta on processor %u\n", processor_index));
 
 	sparta::register_module(new (NonPagedPool) BasicModule);
-	// sparta::register_module(new (NonPagedPool) TokenStealingModule);
+	sparta::register_module(new (NonPagedPool) TokenStealingModule);
 
 	auto vcpu_context = allocate_vcpu_context();
 

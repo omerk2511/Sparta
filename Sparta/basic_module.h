@@ -7,9 +7,6 @@ class BasicModule final : public sparta::BaseModule
 public:
 	explicit BasicModule();
 
-public:
-	virtual void initialize() volatile override;
-
 private:
 	static void handle_triple_fault(VcpuContext* vcpu_context, sparta::VmExitGuestState* guest_state, bool& increment_rip);
 	static void handle_cpuid(VcpuContext* vcpu_context, sparta::VmExitGuestState* guest_state, bool& increment_rip);

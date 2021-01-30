@@ -12,10 +12,6 @@ BasicModule::BasicModule()
 	_vmexit_handlers[static_cast<size_t>(intel::VmExitReason::XSETBV)] = handle_xsetbv;
 }
 
-void BasicModule::initialize() volatile
-{
-}
-
 void BasicModule::handle_triple_fault(VcpuContext*, sparta::VmExitGuestState* guest_state, bool& increment_rip)
 {
 	KdPrint(("rsp: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RSP).value));
