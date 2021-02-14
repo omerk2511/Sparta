@@ -27,6 +27,7 @@ void vmcs::setup(VcpuContext* vcpu_context, unsigned long long host_cr3)
 	KdPrint(("[+] vmcs region allocated @0x%p (virtual) -> @0x%p (physical)\n", virtual_vmcs_region, physical_vmcs_region));
 
 	auto success = vmx::vmclear(reinterpret_cast<unsigned long long*>(&physical_vmcs_region));
+	// scope_guard([&]() { if (!success) { delete[] virtual_vmcs_region; });
 
 	if (!success)
 	{

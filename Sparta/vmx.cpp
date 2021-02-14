@@ -131,6 +131,20 @@ void vmx::inject_nmi()
 	vmx::vmwrite(intel::VmcsField::VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, vm_entry_interruption_information.raw);
 }
 
+void vmx::turn_mtf_on()
+{
+	intel::PrimaryProcessorBasedVmxControls primary_processor_based_vmx_controls = { vmx::vmread<unsigned long>(intel::VmcsField::VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS).value };
+	primary_processor_based_vmx_controls.monitor_trap_flag = true;
+	vmx::vmwrite(intel::VmcsField::VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, primary_processor_based_vmx_controls.raw);
+}
+
+void vmx::turn_mtf_off()
+{
+	intel::PrimaryProcessorBasedVmxControls primary_processor_based_vmx_controls = { vmx::vmread<unsigned long>(intel::VmcsField::VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS).value };
+	primary_processor_based_vmx_controls.monitor_trap_flag = false;
+	vmx::vmwrite(intel::VmcsField::VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, primary_processor_based_vmx_controls.raw);
+}
+
 extern "C" void vmexit_handler(sparta::VmExitGuestState* guest_state)
 {
 	auto vcpu_context = reinterpret_cast<VcpuContext*>(reinterpret_cast<unsigned long long>(guest_state) & 0xfffffffffffff000);

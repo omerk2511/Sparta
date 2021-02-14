@@ -902,6 +902,8 @@ namespace intel
         };
     };
 
+    inline constexpr size_t RAW_PAGE_SIZE = 4096;
+
     auto get_system_segment_base(unsigned short segment_selector, unsigned long long gdt_base) -> unsigned long long;
     auto get_segment_access_rights(unsigned short segment_selector) -> SegmentAccessRights;
 

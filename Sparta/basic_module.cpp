@@ -2,17 +2,7 @@
 #include "vmx.h"
 #include "asm_helpers.h"
 
-BasicModule::BasicModule()
-{
-	_vmexit_handlers[static_cast<size_t>(intel::VmExitReason::TRIPLE_FAULT)] = handle_triple_fault;
-	_vmexit_handlers[static_cast<size_t>(intel::VmExitReason::CPUID)] = handle_cpuid;
-	_vmexit_handlers[static_cast<size_t>(intel::VmExitReason::INVD)] = handle_invd;
-	_vmexit_handlers[static_cast<size_t>(intel::VmExitReason::RDMSR)] = handle_rdmsr;
-	_vmexit_handlers[static_cast<size_t>(intel::VmExitReason::WRMSR)] = handle_wrmsr;
-	_vmexit_handlers[static_cast<size_t>(intel::VmExitReason::XSETBV)] = handle_xsetbv;
-}
-
-void BasicModule::handle_triple_fault(VcpuContext*, sparta::VmExitGuestState* guest_state, bool& increment_rip)
+void BasicModule::handle_triple_fault(VcpuContext*, sparta::VmExitGuestState* guest_state, bool& increment_rip) volatile
 {
 	KdPrint(("rsp: 0x%llx\n", vmx::vmread<unsigned long long>(intel::VmcsField::VMCS_GUEST_RSP).value));
 	KdPrint(("rax: 0x%llx\n", guest_state->rax));
@@ -36,7 +26,7 @@ void BasicModule::handle_triple_fault(VcpuContext*, sparta::VmExitGuestState* gu
 	increment_rip = false;
 }
 
-void BasicModule::handle_cpuid(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&)
+void BasicModule::handle_cpuid(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&) volatile
 {
 	intel::GeneralCpuidInfo cpuid_info = { 0 };
 
@@ -58,12 +48,12 @@ void BasicModule::handle_cpuid(VcpuContext*, sparta::VmExitGuestState* guest_sta
 	guest_state->rdx = static_cast<unsigned long long>(cpuid_info.edx);
 }
 
-void BasicModule::handle_invd(VcpuContext*, sparta::VmExitGuestState*, bool&)
+void BasicModule::handle_invd(VcpuContext*, sparta::VmExitGuestState*, bool&) volatile
 {
 	asm_helpers::invd();
 }
 
-void BasicModule::handle_rdmsr(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&)
+void BasicModule::handle_rdmsr(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&) volatile
 {
 	auto msr = ::__readmsr(static_cast<unsigned long>(guest_state->rcx));
 
@@ -71,7 +61,7 @@ void BasicModule::handle_rdmsr(VcpuContext*, sparta::VmExitGuestState* guest_sta
 	guest_state->rdx = msr >> 32;
 }
 
-void BasicModule::handle_wrmsr(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&)
+void BasicModule::handle_wrmsr(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&) volatile
 {
 	::__writemsr(
 		static_cast<unsigned long>(guest_state->rcx),
@@ -79,7 +69,7 @@ void BasicModule::handle_wrmsr(VcpuContext*, sparta::VmExitGuestState* guest_sta
 	);
 }
 
-void BasicModule::handle_xsetbv(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&)
+void BasicModule::handle_xsetbv(VcpuContext*, sparta::VmExitGuestState* guest_state, bool&) volatile
 {
 	::_xsetbv(
 		static_cast<unsigned long>(guest_state->rcx),

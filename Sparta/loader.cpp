@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "module_manager.h"
 #include "basic_module.h"
+#include "hooking_module.h"
 #include "token_stealing_module.h"
 
 static auto allocate_vcpu_context() -> VcpuContext*;
@@ -27,7 +28,8 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 	KdPrint(("[*] loading sparta on processor %u\n", processor_index));
 
 	sparta::register_module(new (NonPagedPool) BasicModule);
-	sparta::register_module(new (NonPagedPool) TokenStealingModule);
+	sparta::register_module(new (NonPagedPool) HookingModule);
+	// sparta::register_module(new (NonPagedPool) TokenStealingModule);
 
 	auto vcpu_context = allocate_vcpu_context();
 
@@ -56,7 +58,6 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 	KdPrint(("[+] successfully initialized the ept in processor %u\n", processor_index));
 
 	vmcs::setup(vcpu_context, sparta_context->host_cr3);
-	sparta::initialize_modules();
 
 	if (!vcpu_context->vmcs_region)
 	{
@@ -64,6 +65,8 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 		return false;
 	}
 	KdPrint(("[+] successfully initialized the vmcs in processor %u\n", processor_index));
+
+	sparta::initialize_modules(vcpu_context);
 
 	auto success = true;
 	::RtlCaptureContext(&vcpu_context->guest_context);

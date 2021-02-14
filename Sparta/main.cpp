@@ -32,6 +32,9 @@ extern "C" auto DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING regist
 	loader::SpartaContext sparta_context;
 	sparta_context.host_cr3 = ::__readcr3();
 
+	auto lolz = reinterpret_cast<unsigned char*>(&NtCreateFile);
+	KdPrint(("[*] NtCreateFile before: %x %x %x %x %x %x %x %x %x\n", lolz[0], lolz[1], lolz[2], lolz[3], lolz[4], lolz[5], lolz[6], lolz[7], lolz[8]));
+
 	auto results = multiprocessing::execute_callback_in_each_processor(&loader::load_sparta, &sparta_context);
 
 	for (auto i = 0; i < results.processor_count; i++)
@@ -44,6 +47,8 @@ extern "C" auto DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING regist
 	}
 
 	KdPrint(("[+] loaded sparta successfully\n"));
+
+	KdPrint(("[*] NtCreateFile after: %x %x %x %x %x %x %x %x %x\n", lolz[0], lolz[1], lolz[2], lolz[3], lolz[4], lolz[5], lolz[6], lolz[7], lolz[8]));
 
 	return STATUS_SUCCESS;
 }

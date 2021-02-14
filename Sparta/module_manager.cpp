@@ -39,13 +39,13 @@ void sparta::unregister_module(BaseModule* module)
 	}
 }
 
-void sparta::initialize_modules()
+void sparta::initialize_modules(VcpuContext* vcpu_context)
 {
 	for (auto module : g_modules)
 	{
 		if (module)
 		{
-			module->initialize();
+			module->initialize(vcpu_context);
 		}
 	}
 }

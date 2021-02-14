@@ -147,6 +147,7 @@
     <ClCompile Include="base_module.cpp" />
     <ClCompile Include="basic_module.cpp" />
     <ClCompile Include="ept.cpp" />
+    <ClCompile Include="hooking_module.cpp" />
     <ClCompile Include="intel.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="logging.cpp" />
@@ -163,7 +164,9 @@
     <ClInclude Include="asm_helpers.h" />
     <ClInclude Include="basic_module.h" />
     <ClInclude Include="ept.h" />
+    <ClInclude Include="hooking_module.h" />
     <ClInclude Include="intel.h" />
+    <ClInclude Include="ldisasm.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="logging.h" />
     <ClInclude Include="base_module.h" />
