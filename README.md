@@ -7,7 +7,12 @@ Basically, Sparta traces all suspicious kernel mode code executions, kernel stru
 TBD
 
 ## Screenshots
+
+### Basic Execution (Bootstrapping & CPUID "Spoofing")
 ![basic execution](https://github.com/omerk2511/Sparta/blob/master/Screenshots/1.png?raw=true)
+
+### Invisible Syscall Hooking (TLB Splitting)
+![shadow hooks](https://github.com/omerk2511/Sparta/blob/master/Screenshots/2.png?raw=true)
 
 ## How It Works?
 TBD

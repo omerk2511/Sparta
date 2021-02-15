@@ -34,7 +34,7 @@ NTSTATUS hook(
 	ULONG EaLength
 )
 {
-	KdPrint(("[*] NtCreateFile was called!\n"));
+	KdPrint(("[*] NtCreateFile was called: %wZ\n", ObjectAttributes->ObjectName));
 	return old_function(
 		FileHandle,
 		DesiredAccess,
