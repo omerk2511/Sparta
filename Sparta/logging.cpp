@@ -1,6 +1,7 @@
 #include "logging.h"
 #include "vmx.h"
 #include "asm_helpers.h"
+#include "memory.h"
 
 void logging::dump_vmcs_guest_state_area()
 {
@@ -114,4 +115,58 @@ void logging::dump_idt()
 
 		KdPrint(("idt entry #%i: 0x%llx, cs = 0x%lx, attrs = 0x%lx, first opcode = 0x%lx\n", i, address, descriptor->cs, descriptor->attributes, address[0]));
 	}
+}
+
+static constexpr size_t REPORT_BUFFER_SIZE = 256;
+logging::ThreatReport report_buffer[REPORT_BUFFER_SIZE];
+
+void logging::log_to_usermode(ThreatType type, unsigned long long id)
+{
+	for (auto& report_buffer_entry : report_buffer)
+	{
+		if (report_buffer_entry.used)
+		{
+			if (report_buffer_entry.type == type && report_buffer_entry.id == id)
+			{
+				return;
+			}
+
+			continue;
+		}
+
+		report_buffer_entry.used = true;
+		report_buffer_entry.type = type;
+		report_buffer_entry.id = id;
+
+		return;
+	}
+}
+
+size_t logging::dump_log(UsermodeThreatReport* buffer, size_t buffer_length)
+{
+	auto i = 0;
+	auto free_entry_count = buffer_length / sizeof(UsermodeThreatReport);
+	UsermodeThreatReport* current = buffer;
+	size_t size = 0;
+
+	while (free_entry_count > 0 && i < REPORT_BUFFER_SIZE)
+	{
+		if (!report_buffer[i].used)
+		{
+			i++;
+			continue;
+		}
+
+		current->type = report_buffer[i].type;
+		current->id = report_buffer[i].id;
+
+		report_buffer[i].used = false;
+
+		i++;
+		current++;
+		free_entry_count--;
+		size += sizeof(UsermodeThreatReport);
+	}
+
+	return size;
 }

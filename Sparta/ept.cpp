@@ -43,7 +43,9 @@ intel::EptPte* ept::split_large_page(intel::EptLargePde* large_pde)
 	{
 		auto pde = reinterpret_cast<intel::EptPde*>(large_pde);
 
-		PHYSICAL_ADDRESS physical_pt = { pde->pfn };
+		PHYSICAL_ADDRESS physical_pt = { 0 };
+		physical_pt.QuadPart = pde->pfn << 12;
+
 		auto pt = reinterpret_cast<intel::EptPte*>(::MmGetVirtualForPhysical(physical_pt));
 
 		return pt;

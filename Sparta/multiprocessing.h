@@ -36,7 +36,7 @@ namespace multiprocessing
 	};
 
 	template<typename Ret, typename Arg>
-	auto GenericIpiHandler(ULONG_PTR context) -> ULONG_PTR
+	auto generic_ipi_handler(ULONG_PTR context) -> ULONG_PTR
 	{
 		auto ipi_context = reinterpret_cast<IpiContext<Ret, Arg>*>(context);
 
@@ -85,7 +85,7 @@ namespace multiprocessing
 		}
 
 		::KeIpiGenericCall(
-			&GenericIpiHandler<Ret, Arg>,
+			&generic_ipi_handler<Ret, Arg>,
 			reinterpret_cast<ULONG_PTR>(&ipi_context)
 		);
 

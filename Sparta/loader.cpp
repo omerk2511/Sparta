@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "module_manager.h"
 #include "basic_module.h"
+#include "kernel_integrity_module.h"
 #include "hooking_module.h"
 #include "token_stealing_module.h"
 
@@ -28,8 +29,9 @@ auto loader::load_sparta(SpartaContext* sparta_context) -> bool
 	KdPrint(("[*] loading sparta on processor %u\n", processor_index));
 
 	sparta::register_module(new (NonPagedPool) BasicModule);
+	sparta::register_module(new (NonPagedPool) KernelIntegrityModule);
 	sparta::register_module(new (NonPagedPool) HookingModule);
-	// sparta::register_module(new (NonPagedPool) TokenStealingModule);
+	sparta::register_module(new (NonPagedPool) TokenStealingModule);
 
 	auto vcpu_context = allocate_vcpu_context();
 

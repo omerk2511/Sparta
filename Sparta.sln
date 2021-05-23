@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sparta", "Sparta\Sparta.vcxproj", "{FC5EF304-83FB-4D31-A258-4151B44BBDF6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpartaApp", "SpartaApp\SpartaApp.vcxproj", "{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -41,6 +43,18 @@ Global
 		{FC5EF304-83FB-4D31-A258-4151B44BBDF6}.Release|x86.ActiveCfg = Release|Win32
 		{FC5EF304-83FB-4D31-A258-4151B44BBDF6}.Release|x86.Build.0 = Release|Win32
 		{FC5EF304-83FB-4D31-A258-4151B44BBDF6}.Release|x86.Deploy.0 = Release|Win32
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Debug|ARM.ActiveCfg = Debug|Win32
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Debug|x64.ActiveCfg = Debug|x64
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Debug|x64.Build.0 = Debug|x64
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Debug|x86.ActiveCfg = Debug|Win32
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Debug|x86.Build.0 = Debug|Win32
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Release|ARM.ActiveCfg = Release|Win32
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Release|ARM64.ActiveCfg = Release|Win32
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Release|x64.ActiveCfg = Release|x64
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Release|x64.Build.0 = Release|x64
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Release|x86.ActiveCfg = Release|Win32
+		{5096FBCE-D2FB-40D6-8171-0D806FC67F1B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

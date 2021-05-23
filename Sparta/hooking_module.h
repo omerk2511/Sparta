@@ -12,15 +12,34 @@ protected:
 	virtual void handle_ept_violation(VcpuContext* vcpu_context, sparta::VmExitGuestState* guest_state, bool& increment_rip) volatile override;
 
 private:
-	void* _hooked_virtual_page;
-	void* _original_virtual_page;
+	struct SyscallHookRegistration
+	{
+		const char* name;
+		void* hook;
+	};
 
-	unsigned long long _guest_physical_page;
+	struct SyscallHookEntry
+	{
+		const char* name;
+		void* hooked_virtual_page;
+		void* original_virtual_page;
+		void* original_function;
+		unsigned long long guest_physical_page;
+		intel::EptPte* pte;
+	};
 
-	intel::EptPte* _pte;
-
-	bool _restore_page;
+public:
+	static bool insert_syscall_hook_entry(const SyscallHookEntry& syscall_hook_entry);
+	static SyscallHookEntry* get_syscall_hook_entry(unsigned long long guest_physical_page);
+	static SyscallHookEntry* get_syscall_hook_entry(const char* name);
 
 private:
-	static constexpr unsigned char JMP_PATCH[] = "\x50\x48\xB8\x78\x56\x34\x12\x78\x56\x34\x12\x48\x87\x04\x24\xC3";
+	static constexpr size_t MAX_HOOKS = 64;
+	static SyscallHookEntry* _hooks[MAX_HOOKS];
+
+	SyscallHookEntry* _hook_to_restore;
+
+private:
+	static const SyscallHookRegistration SYSCALL_HOOK_REGISTRATIONS[];
+	static constexpr unsigned char JMP_PATCH[] = "\x48\xB8\x78\x56\x34\x12\x78\x56\x34\x12\xFF\xE0";
 };

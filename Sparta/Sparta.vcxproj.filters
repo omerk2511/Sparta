@@ -64,6 +64,15 @@
     <ClCompile Include="hooking_module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="nt_tricks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel_integrity_module.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="validation.h">
@@ -120,7 +129,16 @@
     <ClInclude Include="hooking_module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ldisasm.h">
+    <ClInclude Include="nt_tricks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nmd_assembly.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel_integrity_module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

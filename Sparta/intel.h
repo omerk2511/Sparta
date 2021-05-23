@@ -902,6 +902,20 @@ namespace intel
         };
     };
 
+    union CrAccessExitQualification
+    {
+        unsigned long long raw;
+
+        struct
+        {
+            unsigned long long cr_number : 4;
+            unsigned long long access_type : 2;
+            unsigned long long lmsw_operand_type : 1;
+            unsigned long long : 1;
+            unsigned long long gp_register : 4;
+        };
+    };
+
     inline constexpr size_t RAW_PAGE_SIZE = 4096;
 
     auto get_system_segment_base(unsigned short segment_selector, unsigned long long gdt_base) -> unsigned long long;
